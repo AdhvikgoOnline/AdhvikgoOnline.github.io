@@ -4,8 +4,150 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <title>My test page</title>
+    <style>
+      ul {
+        list-style-type: none;
+      }
+
+      li::before {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        margin-right: 0.25rem;
+        content: "";
+      }
+
+      .open::before,
+      .closed::before {
+        background-size: 1rem 1rem;
+        position: relative;
+        top: 0.25rem;
+        opacity: 0.3;
+      }
+
+      .open::before {
+        background-image: url(img/down.png);
+      }
+
+      .closed::before {
+        background-image: url(img/right.png);
+      }
+
+      .closed .closed::before,
+      .closed .open::before {
+        display: none;
+      }
+    </style>
   </head>
   <body>
     <img src="https://admin.pixelstrap.net/riho/assets/images/other-images/bg-profile.png" alt="My test image" />
+    <h1>Expanding list web component</h1>
+    <ul is="expanding-list">
+      <li>
+        UK
+        <ul>
+          <li>
+            Yorkshire
+            <ul>
+              <li>
+                Leeds
+                <ul>
+                  <li>Train station</li>
+                  <li>Town hall</li>
+                  <li>Headrow</li>
+                </ul>
+              </li>
+              <li>Bradford</li>
+              <li>Hull</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>
+        USA
+        <ul>
+          <li>
+            California
+            <ul>
+              <li>Los Angeles</li>
+              <li>San Francisco</li>
+              <li>Berkeley</li>
+            </ul>
+          </li>
+          <li>Nevada</li>
+          <li>Oregon</li>
+        </ul>
+      </li>
+    </ul>
+
+    <ul>
+      <li>Not</li>
+      <li>an</li>
+      <li>expanding</li>
+      <li>list</li>
+    </ul>
+
+    <script>
+// Create a class for the element
+class ExpandingList extends HTMLUListElement {
+  constructor() {
+    // Always call super first in constructor
+    // Return value from super() is a reference to this element
+    self = super();
+  }
+
+  connectedCallback() {
+    // Get ul and li elements that are a child of this custom ul element
+    // li elements can be containers if they have uls within them
+    const uls = Array.from(self.querySelectorAll("ul"));
+    const lis = Array.from(self.querySelectorAll("li"));
+    // Hide all child uls
+    // These lists will be shown when the user clicks a higher level container
+    uls.forEach((ul) => {
+      ul.style.display = "none";
+    });
+
+    // Look through each li element in the ul
+    lis.forEach((li) => {
+      // If this li has a ul as a child, decorate it and add a click handler
+      if (li.querySelectorAll("ul").length > 0) {
+        // Add an attribute which can be used  by the style
+        // to show an open or closed icon
+        li.setAttribute("class", "closed");
+
+        // Wrap the li element's text in a new span element
+        // so we can assign style and event handlers to the span
+        const childText = li.childNodes[0];
+        const newSpan = document.createElement("span");
+
+        // Copy text from li to span, set cursor style
+        newSpan.textContent = childText.textContent;
+        newSpan.style.cursor = "pointer";
+
+        // Add click handler to this span
+        newSpan.addEventListener("click", (e) => {
+          // next sibling to the span should be the ul
+          const nextul = e.target.nextElementSibling;
+
+          // Toggle visible state and update class attribute on ul
+          if (nextul.style.display == "block") {
+            nextul.style.display = "none";
+            nextul.parentNode.setAttribute("class", "closed");
+          } else {
+            nextul.style.display = "block";
+            nextul.parentNode.setAttribute("class", "open");
+          }
+        });
+        // Add the span and remove the bare text node from the li
+        childText.parentNode.insertBefore(newSpan, childText);
+        childText.parentNode.removeChild(childText);
+      }
+    });
+  }
+}
+
+// Define the new element
+customElements.define("expanding-list", ExpandingList, { extends: "ul" });      
+    </script>
   </body>
 </html>
