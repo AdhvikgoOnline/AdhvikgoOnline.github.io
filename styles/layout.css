@@ -1,0 +1,119 @@
+@media (min-width: 992px) {
+    .layout {
+        display: grid;
+        grid-template-areas: "h h h" "n m m" "n f f";
+        grid-template-rows: 3.6rem 1fr 3rem;
+        grid-template-columns: 15rem 1fr;
+        height: 100vh;
+
+        /* >* {
+        border: 1px solid #0056b3;
+    } */
+
+        >header {
+            grid-area: h;
+        }
+
+        >nav {
+            grid-area: n;
+            overflow-y: scroll;
+            scrollbar-width: thin;
+        }
+
+        >main {
+            grid-area: m;
+            overflow-y: scroll;
+            scrollbar-width: thin;
+        }
+
+        >footer {
+            grid-area: f;
+        }
+
+        >aside {
+            display: none;
+        }
+    }
+
+    .layout-0 {
+        display: block;
+
+        >nav,
+        >main {
+            overflow: unset;
+        }
+    }
+
+    .layout-1 {
+        grid-template-areas: "h h h" "n m m" "f f f";
+    }
+
+    .layout-2 {
+        grid-template-areas: "n h h" "n m m" "n f f";
+    }
+
+    .layout-3 {
+        grid-template-areas: "h h h" "m m m" "f f f";
+
+        >nav {
+            display: none;
+        }
+    }
+
+    .layout-4 {
+        grid-template-areas: "n h h" "n m m" "n f f";
+        grid-template-columns: 3.6rem 1fr;
+
+        .nav-link>span {
+            display: none;
+        }
+    }
+
+    .layout-5 {
+        grid-template-areas: "n m m" "n m m" "h h h";
+        grid-template-rows: 3.6rem 1fr;
+
+        >footer {
+            display: none;
+        }
+    }
+}
+.grid {
+    display: grid;
+    grid-gap: 1rem;
+}
+    @media (min-width: 992px) {
+
+.grid-1 {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.grid-2-25 {
+    grid-template-columns: minmax(0, 25%) minmax(0, 1fr);
+}
+
+.grid-2-75 {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 25%);
+}
+
+.grid-2-66 {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 33%);
+}
+
+.grid-2-33 {
+    grid-template-columns: minmax(0, 33%) minmax(0, 1fr);
+}
+
+}
