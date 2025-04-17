@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .layout {
+            display: grid;
+            grid-template-areas: "h h h" "n m m" "n f f";
+            grid-template-rows: 3rem 1fr 3rem;
+            grid-template-columns: 15rem 1fr;
+            height: 100vh;
+
+            >* {
+                border: 1px solid #0056b3;
+            }
+
+            >header {
+                grid-area: h;
+            }
+
+            >nav {
+                grid-area: n;
+                overflow-y: scroll;
+                scrollbar-width: thin;
+            }
+
+            >main {
+                grid-area: m;
+                overflow-y: scroll;
+                scrollbar-width: thin;
+            }
+
+            >footer {
+                grid-area: f;
+            }
+
+            >aside {
+                display: none;
+            }
+        }
+
+        .layout-1 {
+            grid-template-areas: "h h h" "n m m" "f f f";
+        }
+
+        .layout-2 {
+            grid-template-areas: "n h h" "n m m" "n f f";
+        }
+
+        .layout-3 {
+            grid-template-areas: "h h h" "m m m" "f f f";
+
+            >nav {
+                display: none;
+            }
+        }
+
+        .layout-4 {
+            grid-template-areas: "n h h" "n m m" "n f f";
+            grid-template-columns: 3rem 1fr;
+        }
+
+        .layout-5 {
+            grid-template-areas: "n m m" "n m m" "h h h";
+
+            >footer {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout layout-3">
+        <header class="d-flex justify-content-between align-items-center">
+            <h1>Admin Dashboard</h1>
+            <a class="btn btn-primary" data-bs-toggle="offcanvas" href="#offcanvasExample" role="button"
+                aria-controls="offcanvasExample">
+                <i class="bi-gear"></i>
+            </a>
+        </header>
+        <main>
+            <div>
+                <h2 class="sticky-top">Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+            <div>
+                <h2>Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+            <div>
+                <h2>Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+            <div>
+                <h2>Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+            <div>
+                <h2>Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+            <div>
+                <h2>Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+            <div>
+                <h2>Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+            <div>
+                <h2>Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+            <div>
+                <h2>Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+            <div>
+                <h2>Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+            <div>
+                <h2>Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+            <div>
+                <h2>Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+            <div>
+                <h2>Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+            <div>
+                <h2>Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+            <div>
+                <h2>Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+            <div>
+                <h2>Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+            <div>
+                <h2>Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+            <div>
+                <h2>Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+            <div>
+                <h2>Welcome, Admin!</h2>
+                <p>Use the options below to manage the website:</p>
+                <a href="#" class="button">Manage Users</a>
+                <a href="#" class="button">View Reports</a>
+                <a href="#" class="button">Settings</a>
+            </div>
+        </main>
+        <nav>Navigation</nav>
+        <footer>Footer</footer>
+    </div>
+    <aside class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasExampleLabel">Settings</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <h6>Theme</h6>
+            <div class="btn-group mb-3" role="group" aria-label="Basic radio toggle button group">
+                <input type="radio" class="btn-check" name="bstheme" id="btnradio1" value="light" autocomplete="off"
+                    checked="">
+                <label class="btn btn-outline-primary" for="btnradio1"><i class="bi-sun-fill me-2"></i>Light</label>
+
+                <input type="radio" class="btn-check" name="bstheme" id="btnradio2" value="dark" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btnradio2"><i
+                        class="bi-moon-stars-fill me-2"></i>Dark</label>
+
+                <input type="radio" class="btn-check" name="bstheme" id="btnradio3" value="auto" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btnradio3"><i class="bi-circle-half me-2"></i>Auto</label>
+            </div>
+            <h6>Layout</h6>
+            <div class="btn-group mb-3" role="group" aria-label="Basic radio toggle button group">
+                <input type="radio" class="btn-check" name="bslayout" id="btnradioL1" value="1" autocomplete="off"
+                    checked="">
+                <label class="btn btn-outline-primary" for="btnradioL1"><i class="bi-sun-fill me-2"></i>Layout 1</label>
+
+                <input type="radio" class="btn-check" name="bslayout" id="btnradioL2" value="2" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btnradioL2"><i class="bi-moon-stars-fill me-2"></i>Layout
+                    2</label>
+
+                <input type="radio" class="btn-check" name="bslayout" id="btnradioL3" value="3" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btnradioL3"><i class="bi-circle-half me-2"></i>Layout
+                    3</label>
+                <input type="radio" class="btn-check" name="bslayout" id="btnradioL4" value="4" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btnradioL4"><i class="bi-circle-half me-2"></i>Layout
+                    4</label>
+                <input type="radio" class="btn-check" name="bslayout" id="btnradioL5" value="5" autocomplete="off">
+                <label class="btn btn-outline-primary" for="btnradioL5"><i class="bi-circle-half me-2"></i>Layout
+                    5</label>
+            </div>
+            <div>
+                Some text as placeholder. In real life you can have the elements you have chosen. Like, text, images,
+                lists, etc.
+            </div>
+            <div class="dropdown mt-3">
+                <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    Dropdown button
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">Action</a></li>
+                    <li><a class="dropdown-item" href="#">Another action</a></li>
+                    <li><a class="dropdown-item" href="#">Something else here</a></li>
+                </ul>
+            </div>
+        </div>
+    </aside>
+
+    <script>
+        // Layout switcher script
+        (() => {
+            'use strict'
+
+            const storedLayout = window.location.href.toLowerCase().indexOf('amatyaz') >= 0 ? localStorage.getItem('alayout') : localStorage.getItem('layout')
+
+            const getPreferredLayout = () => {
+                if (storedLayout) {
+                    return storedLayout
+                }
+
+                return 1
+            }
+
+            const setLayout = function (layout) {
+                document.querySelector('.layout').className = 'layout layout-' + layout
+            }
+
+            setLayout(getPreferredLayout())
+
+            const showActiveLayout = (layout, focus = false) => {
+                const layoutSwitcher = document.querySelector('input[name=bslayout]')
+
+                if (!layoutSwitcher) {
+                    return
+                }
+                document.querySelectorAll('input[name=bslayout]').forEach((emt) => {
+                    emt.checked = (emt.value == layout);
+                })
+
+                if (focus) {
+                    layoutSwitcher.focus()
+                }
+            }
+
+            window.addEventListener('DOMContentLoaded', () => {
+                showActiveLayout(getPreferredLayout())
+
+                document.querySelectorAll('input[name=bslayout]')
+                    .forEach(toggle => {
+                        toggle.addEventListener('click', () => {
+                            const layout = toggle.getAttribute('value')
+                            localStorage.setItem(window.location.href.toLowerCase().indexOf('amatyaz') >= 0 ? 'alayout' : 'layout', layout)
+                            setLayout(layout)
+                            showActiveLayout(layout, true)
+                        })
+                    })
+            })
+        })();
+
+
+        // Bootstrap theme switcher script
+        // This script allows users to switch between light and dark themes on a webpage.
+        (() => {
+            'use strict'
+
+            const storedTheme = window.location.href.toLowerCase().indexOf('amatyaz') >= 0 ? localStorage.getItem('atheme') : localStorage.getItem('theme')
+
+            const getPreferredTheme = () => {
+                if (storedTheme) {
+                    return storedTheme
+                }
+
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+            }
+
+            const setTheme = function (theme) {
+                if (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.setAttribute('data-bs-theme', 'dark')
+                } else {
+                    document.documentElement.setAttribute('data-bs-theme', theme)
+                }
+            }
+
+            setTheme(getPreferredTheme())
+
+            const showActiveTheme = (theme, focus = false) => {
+                const themeSwitcher = document.querySelector('input[name=bstheme]')
+
+                if (!themeSwitcher) {
+                    return
+                }
+                document.querySelectorAll('input[name=bstheme]').forEach((emt) => {
+                    emt.checked = (emt.value == theme);
+                })
+
+                if (focus) {
+                    themeSwitcher.focus()
+                }
+            }
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                if (storedTheme !== 'light' || storedTheme !== 'dark') {
+                    setTheme(getPreferredTheme())
+                }
+            })
+
+            window.addEventListener('DOMContentLoaded', () => {
+                showActiveTheme(getPreferredTheme())
+
+                document.querySelectorAll('input[name=bstheme]')
+                    .forEach(toggle => {
+                        toggle.addEventListener('click', () => {
+                            const theme = toggle.getAttribute('value')
+                            localStorage.setItem(window.location.href.toLowerCase().indexOf('amatyaz') >= 0 ? 'atheme' : 'theme', theme)
+                            setTheme(theme)
+                            showActiveTheme(theme, true)
+                        })
+                    })
+            })
+        })()
+
+    </script>
+</body>
+
+</html>
