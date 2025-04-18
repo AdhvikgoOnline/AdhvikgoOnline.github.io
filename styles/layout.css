@@ -78,42 +78,152 @@
         }
     }
 }
+
 .grid {
     display: grid;
     grid-gap: 1rem;
 }
-    @media (min-width: 992px) {
 
-.grid-1 {
-    grid-template-columns: minmax(0, 1fr);
+@media (min-width: 992px) {
+
+    .grid-1 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .grid-2-25 {
+        grid-template-columns: minmax(0, 25%) minmax(0, 1fr);
+    }
+
+    .grid-2-75 {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 25%);
+    }
+
+    .grid-2-66 {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 33%);
+    }
+
+    .grid-2-33 {
+        grid-template-columns: minmax(0, 33%) minmax(0, 1fr);
+    }
+}
+/* Table Settings 
+table {
+    position: relative;
+    border-collapse: collapse;
+    & th {
+        position: sticky;
+        top: 114px;
+        background-color: #292929;
+        z-index: 1;
+    }
+    & th.is-pinned { 
+        border-bottom: 1px solid #0056b3;
+    }
 }
 
-.grid-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+            <div class="region" role="region" aria-labelledby="caption" tabindex="0">
+                <table>
+                    <caption id="caption">Baseball numbers mmkay.</caption>
+                    <thead>
+                        <tr>
+                            <th>Teams</th>
+                            <th>1</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>Milwaukee Brewers</th>
+                            <td>1</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+*/
+.region {
+    & table {
+        white-space: nowrap;
+        margin: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        table-layout: fixed;
+
+        & td,
+        th {
+            border: 1px solid;
+        }
+
+        & thead th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            width: 25vw;
+        }
+
+        & td {
+            padding: 4px 5px;
+        }
+
+        & tbody th {
+            position: relative;
+        }
+
+        & thead th:first-child, tbody th, tbody td:first-child {
+            position: sticky;
+            left: 0;
+            top: 0;
+            z-index: 2;
+        }
+
+        & tbody th, tbody td:first-child {
+            z-index: 1;
+        }
+    }
 }
 
-.grid-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+caption {
+    position: sticky;
+    left: 0;
 }
 
-.grid-4 {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+[role="region"][aria-labelledby][tabindex] {
+    width: 100%;
+    max-height: 98vh;
+    overflow: auto;
 }
 
-.grid-2-25 {
-    grid-template-columns: minmax(0, 25%) minmax(0, 1fr);
-}
+/* [role="region"][aria-labelledby][tabindex]:focus {
+    box-shadow: 0 0 0.5em rgba(255, 255, 255, 0.5);
+    outline: 0;
+} */
 
-.grid-2-75 {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 25%);
-}
-
-.grid-2-66 {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 33%);
-}
-
-.grid-2-33 {
-    grid-template-columns: minmax(0, 33%) minmax(0, 1fr);
-}
-
+/* Sidebar Navigation Menu */
+ul[is="expanding-list"] {
+    & > li > a {
+        padding-left: 1rem;
+    }
+    & > li > ul > li > a {
+        padding-left: 2rem;
+    }
+    & > li > ul > li > ul > li > a {
+        padding-left: 3rem;
+    }
+    & > li > ul > li > ul > li > ul > li > a {
+        padding-left: 4rem;
+    }
+    a:hover {
+        background-color: var(--bs-secondary-bg-subtle);
+    }
 }
