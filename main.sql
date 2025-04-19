@@ -1,0 +1,1 @@
+SELECT a.*, CASE WHEN EXISTS (SELECT 1 FROM Menus WHERE PMenuId = a.MenuId) THEN 1 ELSE 0 END AS haschild FROM Menus AS a WHERE ISNULL(a.PMenuId, 0) = 0

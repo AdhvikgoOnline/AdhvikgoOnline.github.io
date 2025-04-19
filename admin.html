@@ -14,13 +14,18 @@
 <body>
     <div class="layout layout-3">
         <header class="d-flex justify-content-between align-items-center border-bottom">
-            <nav class="navbar navbar-expand-lg" aria-label="Main navigation">
+            <nav class="navbar navbar-expand-lg w-100" aria-label="Main navigation">
                 <div class="container-fluid">
-                    <a class="navbar-brand" href="#">Offcanvas navbar</a>
-                    <button class="navbar-toggler" type="button" id="navbarSideCollapse" data-bs-toggle="collapse" data-bs-target="#navbarsExampleDefault" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
+                    <a class="navbar-brand me-auto" href="#">Offcanvas navbar</a>
+                    <button class="btn btn-outline-secondary border-0 d-md-none" type="button" id="navbarSideCollapse" data-bs-toggle="collapse" data-bs-target="#navbarsExampleDefault" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                        <i class="bi-three-dots"></i>
                     </button>
-
+                    <button class="btn btn-outline-secondary border-0 d-md-none" type="button" data-bs-toggle="offcanvas"
+                        data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false"
+                        aria-label="Toggle navigation">
+                        <i class="bi-three-dots-vertical"></i>
+                    </button>
+        
                     <div class="collapse navbar-collapse offcanvas-collapse" id="navbarsExampleDefault">
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                             <li class="nav-item">
@@ -102,7 +107,7 @@
                 <div class="article-body">
                     <div class="fentry">
                         <style></style>
-                        <form id="F00000046" name="F00000046" class="grid grid-2 m-3">
+                        <form id="F00000046" name="F00000046" class="grid grid-1 grid-md-2 m-3">
                             <div class="d-none form-floating">
                                 <input id="p000046GTypeId" name="p000046GTypeId" value="30" placeholder=" ">
                                 <label for="p000046GTypeId" class="d-none">Type</label>
@@ -324,7 +329,7 @@
                 <a href="#" class="button">View Reports</a>
                 <a href="#" class="button">Settings</a>
             </div>
-            <form id="F00aaaaaa" name="F00aaaaaa" class="grid grid-2-25 m-3">
+            <form id="F00aaaaaa" name="F00aaaaaa" class="grid grid-1 grid-md-2-25 m-3">
                 <div class="d-none form-floating">
                     <input id="kaaaaaaAPhysicalId" class="form-control" name="kaaaaaaAPhysicalId" type="text" value="0" placeholder="" />
                     <label for="kaaaaaaAPhysicalId">Id #</label>

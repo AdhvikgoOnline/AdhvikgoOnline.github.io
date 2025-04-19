@@ -1,3 +1,12 @@
+* {
+    scrollbar-width: thin;
+}
+*::-webkit-scrollbar-thumb, *::-webkit-scrollbar {
+    visibility: hidden;
+}
+*:hover::-webkit-scrollbar-thumb, *:focus::-webkit-scrollbar {
+    visibility: visible;
+}
 @media (min-width: 992px) {
     .layout {
         display: grid;
@@ -12,18 +21,17 @@
 
         >header {
             grid-area: h;
+            z-index: 1044;
         }
 
         >nav {
             grid-area: n;
             overflow-y: scroll;
-            scrollbar-width: thin;
         }
 
         >main {
             grid-area: m;
             overflow-y: scroll;
-            scrollbar-width: thin;
         }
 
         >footer {
@@ -83,38 +91,68 @@
     display: grid;
     grid-gap: 1rem;
 }
+.grid-1 {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.grid-2-25 {
+    grid-template-columns: minmax(0, 25%) minmax(0, 1fr);
+}
+
+.grid-2-75 {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 25%);
+}
+
+.grid-2-66 {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 33%);
+}
+
+.grid-2-33 {
+    grid-template-columns: minmax(0, 33%) minmax(0, 1fr);
+}
 
 @media (min-width: 992px) {
-
-    .grid-1 {
+    .grid-md-1 {
         grid-template-columns: minmax(0, 1fr);
     }
 
-    .grid-2 {
+    .grid-md-2 {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .grid-3 {
+    .grid-md-3 {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .grid-4 {
+    .grid-md-4 {
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
-    .grid-2-25 {
+    .grid-md-2-25 {
         grid-template-columns: minmax(0, 25%) minmax(0, 1fr);
     }
 
-    .grid-2-75 {
+    .grid-md-2-75 {
         grid-template-columns: minmax(0, 1fr) minmax(0, 25%);
     }
 
-    .grid-2-66 {
+    .grid-md-2-66 {
         grid-template-columns: minmax(0, 1fr) minmax(0, 33%);
     }
 
-    .grid-2-33 {
+    .grid-md-2-33 {
         grid-template-columns: minmax(0, 33%) minmax(0, 1fr);
     }
 }
@@ -224,6 +262,11 @@ ul[is="expanding-list"] {
         padding-left: 4rem;
     }
     a:hover {
-        background-color: var(--bs-secondary-bg-subtle);
+        background-color: var(--bs-body-bg-subtle);
     }
+}
+
+/* Article settings */
+article header {
+    z-index: 1043 !important;
 }
