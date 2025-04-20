@@ -27,8 +27,11 @@
         >nav {
             grid-area: n;
             overflow-y: scroll;
+            scrollbar-color: transparent transparent;
         }
-
+        >nav:hover {
+            scrollbar-color: inherit;
+        }
         >main {
             grid-area: m;
             overflow-y: scroll;
@@ -81,6 +84,20 @@
         grid-template-areas: "n m m" "n m m" "h h h";
         grid-template-rows: 3.6rem 1fr;
 
+        >footer {
+            display: none;
+        }
+    }
+    /* change layout 6 with different grid-template-areas */
+    .layout-6 { 
+        grid-template-areas: "n m m" "n m m" "n m m";
+        & >footer, >header {
+            display: none !important;
+        }
+    }
+
+    .layout-7 {
+        grid-template-areas: "n h h" "n m m" "n m m";
         >footer {
             display: none;
         }
@@ -192,7 +209,7 @@ table {
 */
 .region {
     & table {
-        white-space: nowrap;
+        /* white-space: nowrap;
         margin: 0;
         border-collapse: separate;
         border-spacing: 0;
@@ -201,18 +218,18 @@ table {
         & td,
         th {
             border: 1px solid;
-        }
+        } */
 
         & thead th {
             position: sticky;
             top: 0;
             z-index: 1;
-            width: 25vw;
+            /* width: 25vw; */
         }
 
-        & td {
+        /* & td {
             padding: 4px 5px;
-        }
+        } */
 
         & tbody th {
             position: relative;
@@ -237,8 +254,8 @@ caption {
 }
 
 [role="region"][aria-labelledby][tabindex] {
-    width: 100%;
-    max-height: 98vh;
+    /* width: 100%; */
+    max-height: 75vh;
     overflow: auto;
 }
 
