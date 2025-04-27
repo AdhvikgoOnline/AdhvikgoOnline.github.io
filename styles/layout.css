@@ -222,7 +222,7 @@ table {
 
         & thead th {
             position: sticky;
-            top: 58px;
+            top: 0;
             z-index: 2;
             /* width: 25vw; */
         }
@@ -246,16 +246,17 @@ table {
             z-index: 1;
         }
     }
-    & .aitoolbar {
-        flex-flow: nowrap;
-        overflow-y: auto;
-        background-color: var(--bs-body-bg);
-        
-        & .form-floating {
-            min-inline-size: max-content;
-        }
+}
+.ai-toolbar {
+    flex-flow: nowrap;
+    overflow-y: auto;
+    background-color: var(--bs-body-bg);
+    
+    & .form-floating {
+        min-inline-size: max-content;
     }
 }
+
 
 caption {
     position: sticky;
