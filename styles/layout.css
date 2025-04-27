@@ -222,8 +222,8 @@ table {
 
         & thead th {
             position: sticky;
-            top: 0;
-            z-index: 1;
+            top: 58px;
+            z-index: 2;
             /* width: 25vw; */
         }
 
@@ -235,15 +235,24 @@ table {
             position: relative;
         }
 
-        & thead th:first-child, tbody th, tbody td:first-child {
+        & thead th.fixed, tbody th, tbody td.fixed {
             position: sticky;
             left: 0;
             top: 0;
             z-index: 2;
         }
 
-        & tbody th, tbody td:first-child {
+        & tbody th, tbody td.fixed {
             z-index: 1;
+        }
+    }
+    & .aitoolbar {
+        flex-flow: nowrap;
+        overflow-y: auto;
+        background-color: var(--bs-body-bg);
+        
+        & .form-floating {
+            min-inline-size: max-content;
         }
     }
 }

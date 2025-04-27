@@ -1,4 +1,4 @@
-// Layout switcher script
+// Layout switcher script admin / website
 (() => {
     'use strict'
 
@@ -49,7 +49,7 @@
 })();
 
 
-// Bootstrap theme switcher script
+// Bootstrap theme switcher script admin / website
 // This script allows users to switch between light and dark themes on a webpage.
 (() => {
     'use strict'
