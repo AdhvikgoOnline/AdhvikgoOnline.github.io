@@ -325,9 +325,13 @@ ul[is="expanding-list"] {
     & > li > ul > li > ul > li > ul > li > a {
         padding-left: 4rem;
     }
+    & ul {
+        list-style: none;
+    }
     /* a:hover {
         background-color: var(--bs-body-bg-subtle);
     } */
+
 }
 
 /* Article settings */
