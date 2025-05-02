@@ -9,6 +9,12 @@
 }
 @media (min-width: 992px) {
     .layout {
+        --bs-vnav-link-color: var(--bs-body-color);
+        --bs-vnav-link-hover-color: var(--bs-body-color);
+        --bs-vnav-link-hover-bg: var(--bs-secondary-bg);
+        --bs-vnav-link-active-color: var(--bs-emphasis-color);
+        --bs-vnav-link-active-bg: var(--bd-sidebar-link-bg);
+
         display: grid;
         grid-template-areas: "h h h" "n m m" "n f f";
         grid-template-rows: 3.6rem 1fr 3rem;
@@ -21,15 +27,33 @@
 
         >header {
             grid-area: h;
-            z-index: 1044;
+            z-index: 1039;
         }
 
         >nav {
             grid-area: n;
+        }
+        /* >nav:hover {
+            scrollbar-color: inherit;
+        } */
+         >nav a {
+
+            color: var(--bs-vnav-link-color);
+
+            &.active {
+                color: var(--bs-vnav-link-color);
+                background-color: var(--bs-vnav-link-active-bg);
+            }
+            &:focus, &:hover {
+                color: var(--bs-vnav-link-color);
+                background-color: var(--bs-vnav-link-hover-bg);
+            }
+        }
+        >nav .offcanvas-body {
             overflow-y: scroll;
             scrollbar-color: transparent transparent;
         }
-        >nav:hover {
+        >nav:hover .offcanvas-body {
             scrollbar-color: inherit;
         }
         >main {
@@ -172,6 +196,19 @@
     .grid-md-2-33 {
         grid-template-columns: minmax(0, 33%) minmax(0, 1fr);
     }
+
+    .gcs-md-2 {
+        grid-column: span 2;
+    }
+    
+    .gcs-md-3 {
+        grid-column: span 3;
+    }
+    
+    .gcs-md-4 {
+        grid-column: span 4;
+    }
+    
 }
 /* Table Settings 
 table {
@@ -288,12 +325,12 @@ ul[is="expanding-list"] {
     & > li > ul > li > ul > li > ul > li > a {
         padding-left: 4rem;
     }
-    a:hover {
+    /* a:hover {
         background-color: var(--bs-body-bg-subtle);
-    }
+    } */
 }
 
 /* Article settings */
 article header {
-    z-index: 1043 !important;
+    z-index: 1038 !important;
 }
