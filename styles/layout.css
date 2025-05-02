@@ -327,6 +327,7 @@ ul[is="expanding-list"] {
     }
     & ul {
         list-style: none;
+        padding: 0;
     }
     /* a:hover {
         background-color: var(--bs-body-bg-subtle);
