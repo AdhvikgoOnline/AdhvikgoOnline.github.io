@@ -156,7 +156,7 @@ class ExpandingList extends HTMLUListElement {
             if (li.querySelectorAll("ul").length > 0) {
                 // Add an attribute which can be used  by the style
                 // to show an open or closed icon
-                li.setAttribute("class", "closed");
+                //li.setAttribute("class", "closed");
                 //debugger;
                 const childText = li.childNodes[0];
 
@@ -170,7 +170,7 @@ class ExpandingList extends HTMLUListElement {
 
                 newSpan.addEventListener("click", (e) => {
                     // next sibling to the span should be the ul
-                    $(this).next("ul").slideToggle();
+                    $(e.target).next("ul").slideToggle();
                     /*
                     const nextul = e.target.nextElementSibling;
                     const ctrl = this;
