@@ -135,9 +135,9 @@ class ExpandingList extends HTMLUListElement {
             let casa = window[`AF${fcode}MenuOpen`];
             if (casa != undefined) { if (typeof casa == "function") casa(e, this); }
         });
-        $(this).on("click", ".parent1.childs", function(e) {
+        $(this).on("click", ".parent1.childs a", function(e) {
             e.preventDefault();
-            $(">ul", $(this)).toggle("slide");
+            $(this).next("ul").slideToggle("slow");
         });
 
         // Get ul and li elements that are a child of this custom ul element
