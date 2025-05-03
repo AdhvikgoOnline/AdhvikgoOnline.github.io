@@ -329,12 +329,12 @@ ul[is="expanding-list"] {
         list-style: none;
         padding: 0;
     }
-    & li.open ul {
+    /* & li.open ul {
         display: block;
     }
     & li.closed ul {
         display: none;
-    } 
+    }  */
 /* a:hover {
         background-color: var(--bs-body-bg-subtle);
     } */

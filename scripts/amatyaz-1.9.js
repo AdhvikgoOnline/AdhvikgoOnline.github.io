@@ -137,7 +137,7 @@ class ExpandingList extends HTMLUListElement {
         });
         $(this).on("click", ".parent1.childs", function(e) {
             e.preventDefault();
-            $(this).toggleClass("open closed");
+            $(">ul", $(this)).toggle("slide");
         });
 
         // Get ul and li elements that are a child of this custom ul element
