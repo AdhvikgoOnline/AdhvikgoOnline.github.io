@@ -731,42 +731,6 @@ var urlParams;
 })();
 
 
-/*********** */
-function setsession1(u, f) {
-        $.ajax({
-            type: "POST",
-            url: 'aidt.asmx/setsession1', data: { 'u': u },  
-            success: f
-        });
-}
-var keepSessionAlive = false;
-var keepSessionAliveUrl = null;
-
-function SetupSessionUpdater(actionUrl) {
-    keepSessionAliveUrl = actionUrl;
-    var container = $("body");
-    container.mousemove(function () { keepSessionAlive = true; });
-    container.keydown(function () { keepSessionAlive = true; });
-    CheckToKeepSessionAlive();
-}
-
-function CheckToKeepSessionAlive() {
-    setTimeout("KeepSessionAlive()", 1000); // 5 * 60 * 1000);
-}
-
-function KeepSessionAlive() {
-    if (!keepSessionAlive && keepSessionAliveUrl != null) {
-        $.ajax({
-            type: "POST",
-            url: keepSessionAliveUrl, 
-            success: function () { keepSessionAlive = false; }
-        });
-    }
-    CheckToKeepSessionAlive();
-}
-$(function () {
-    //SetupSessionUpdater('aidt.asmx/whoislive');
-});
 
 
 function toggleDropdown(e) {

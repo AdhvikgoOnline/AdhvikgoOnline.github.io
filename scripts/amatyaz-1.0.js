@@ -1670,3 +1670,39 @@ customElements.get('watch-time') || customElements.define(
     }
 );
 //curTimer.innerHTML = `<watch-time start="2024-11-13T11:11:48"></watch-time>`;
+/*********** set session uid */
+function setsession1(u, f) {
+    $.ajax({
+        type: "POST",
+        url: 'aidt.asmx/setsession1', data: { 'u': u },  
+        success: f
+    });
+}
+var keepSessionAlive = false;
+var keepSessionAliveUrl = null;
+
+function SetupSessionUpdater(actionUrl) {
+keepSessionAliveUrl = actionUrl;
+var container = $("body");
+container.mousemove(function () { keepSessionAlive = true; });
+container.keydown(function () { keepSessionAlive = true; });
+CheckToKeepSessionAlive();
+}
+
+function CheckToKeepSessionAlive() {
+setTimeout("KeepSessionAlive()", 1000); // 5 * 60 * 1000);
+}
+
+function KeepSessionAlive() {
+if (!keepSessionAlive && keepSessionAliveUrl != null) {
+    $.ajax({
+        type: "POST",
+        url: keepSessionAliveUrl, 
+        success: function () { keepSessionAlive = false; }
+    });
+}
+CheckToKeepSessionAlive();
+}
+$(function () {
+//SetupSessionUpdater('aidt.asmx/whoislive');
+});
