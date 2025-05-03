@@ -13,7 +13,8 @@
     }
 
     const setLayout = function (layout) {
-        document.querySelector('.layout').className = 'layout layout-' + layout
+        if(document.querySelector('.layout') != undefined)
+            document.querySelector('.layout').className = 'layout layout-' + layout
     }
 
     setLayout(getPreferredLayout())
