@@ -170,6 +170,8 @@ class ExpandingList extends HTMLUListElement {
 
                 newSpan.addEventListener("click", (e) => {
                     // next sibling to the span should be the ul
+                    $(this).next("ul").slideToggle();
+                    /*
                     const nextul = e.target.nextElementSibling;
                     const ctrl = this;
                     // Toggle visible state and update class attribute on ul
@@ -180,6 +182,7 @@ class ExpandingList extends HTMLUListElement {
                         nextul.style.display = "block";
                         nextul.parentNode.setAttribute("class", "open");
                     }
+                        */
                 });
                 // Add the span and remove the bare text node from the li
                 //childText.parentNode.insertBefore(newSpan, childText);
