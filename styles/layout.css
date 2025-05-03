@@ -247,10 +247,11 @@ table {
 */
 .region {
     & table {
-        /* white-space: nowrap;
-        margin: 0;
+        /*in sticky header border not display so following code used collapse and spacing both */
         border-collapse: separate;
         border-spacing: 0;
+        /* white-space: nowrap;
+        margin: 0;
         table-layout: fixed;
 
         & td,
@@ -262,6 +263,7 @@ table {
             position: sticky;
             top: 0;
             z-index: 2;
+            border: 1px solid var(--bs-border-color);
             /* width: 25vw; */
         }
 
@@ -680,4 +682,47 @@ select.is-valid ~ .select2-container .select2-selection,form.was-validated selec
     content: attr(title);
     display: inline-block;
     cursor: pointer;
+}
+
+.cke_notifications_area {display: none !important;}
+
+button[type=submit].active::before {
+	content: '';
+    position:absolute;
+    left: 0.25rem;
+    top: 0.75rem;
+    display: inline-block;
+    width: 1.5rem;
+    height: 1.5rem;
+    background-color: currentColor;
+    border-radius: 50%;
+    opacity: 0;
+    -webkit-animation: .75s linear infinite spinner-grow;
+    animation: .75s linear infinite spinner-grow;
+}
+@keyframes spinner-grow {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.userlist1 {
+    & img {
+        width: 3rem;
+        height: 3rem;
+        object-fit: cover;
+        position: relative;
+    }
+
+    & img:not(:first-child) {
+        margin-left: -1.5rem;
+    }
+
+    & img:hover {
+        z-index: 2000;
+    }
 }
