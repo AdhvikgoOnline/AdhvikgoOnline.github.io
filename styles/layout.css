@@ -329,10 +329,10 @@ ul[is="expanding-list"] {
         list-style: none;
         padding: 0;
     }
-    & ul li.open {
+    & li.open ul {
         display: block;
     }
-    & ul li.closed {
+    & li.closed ul {
         display: none;
     } 
 /* a:hover {
