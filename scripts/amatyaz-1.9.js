@@ -129,12 +129,12 @@ class ExpandingList extends HTMLUListElement {
     }
 
     connectedCallback() {
-        $(this).on("click", ".parent1:not(.childs) a", function() {
+        $(this).on("click", ".parent1:not(.childs) a", function(e) {
             debugger;
-            let fcode = this.closest("ul[is=expanding-list]").dataset("code");
+            let fcode = $(this.closest("ul[is=expanding-list]")).data("code");
             let casa = window[`AF${fcode}Closed`];
-            if (casa != undefined) { if (typeof casa == "function") casa(e, ctrl); }
-    });
+            if (casa != undefined) { if (typeof casa == "function") casa(e, this); }
+        });
 
 
         // Get ul and li elements that are a child of this custom ul element
