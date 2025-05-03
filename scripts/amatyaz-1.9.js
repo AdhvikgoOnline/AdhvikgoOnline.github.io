@@ -118,7 +118,8 @@ const observer = new IntersectionObserver(
 );
 
 const el = document.querySelectorAll("table th")
-observer.observe(el[0]);
+if(el)
+    observer.observe(el[0]);
 
 // Expanding and collapsing un ordered lists
 // Create a class for the element
