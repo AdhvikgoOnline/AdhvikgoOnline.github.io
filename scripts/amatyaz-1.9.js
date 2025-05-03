@@ -130,12 +130,17 @@ class ExpandingList extends HTMLUListElement {
 
     connectedCallback() {
         $(this).on("click", ".parent1:not(.childs) a", function(e) {
-            debugger;
+            e.preventDefault();
             let fcode = $(this.closest("ul[is=expanding-list]")).data("code");
-            let casa = window[`AF${fcode}Closed`];
+            let casa = window[`AF${fcode}MenuOpen`];
             if (casa != undefined) { if (typeof casa == "function") casa(e, this); }
         });
-
+        $(this).on("click", ".parent1.childs a", function(e) {
+            e.preventDefault();
+            const nextul = e.target.nextElementSibling;
+            // Toggle visible state and update class attribute on ul
+            nextul.classList.toggle('open closed');
+        });
 
         // Get ul and li elements that are a child of this custom ul element
         // li elements can be containers if they have uls within them
@@ -173,17 +178,9 @@ class ExpandingList extends HTMLUListElement {
                     if (nextul.style.display == "block") {
                         nextul.style.display = "none";
                         nextul.parentNode.setAttribute("class", "closed");
-
-                        let fcode = this.closest("ul[is=expanding-list]").dataset("code");
-                        let casa = window[`AF${fcode}Closed`];
-                        if (casa != undefined) { if (typeof casa == "function") casa(e, ctrl); }
                     } else {
                         nextul.style.display = "block";
                         nextul.parentNode.setAttribute("class", "open");
-
-                        let fcode = this.closest("ul[is=expanding-list]").dataset("code");
-                        let casa = window[`AF${fcode}Opened`];
-                        if (casa != undefined) { if (typeof casa == "function") casa(e, ctrl); }
                     }
                 });
                 // Add the span and remove the bare text node from the li
