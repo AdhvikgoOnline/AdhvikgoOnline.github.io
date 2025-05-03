@@ -656,3 +656,28 @@ select.is-valid ~ .select2-container .select2-selection,form.was-validated selec
 .select2-container.select2-container--disabled .select2-selection--multiple .select2-selection__choice .select2-selection__choice__remove {
     display: none
 }
+
+/*File upload input*/
+.aifile {
+    position: relative;
+}
+
+.aifile input[type=file] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    text-indent: -999px;
+    width: 100%;
+    bottom: 0;
+}
+
+.file-input::-webkit-file-upload-button {
+    visibility: hidden;
+}
+
+.file-input::before {
+    content: attr(title);
+    display: inline-block;
+    cursor: pointer;
+}
