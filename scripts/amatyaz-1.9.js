@@ -118,7 +118,7 @@ const observer = new IntersectionObserver(
 );
 
 const el = document.querySelectorAll("table th")
-if(el)
+if(el.length > 0) 
     observer.observe(el[0]);
 
 // Expanding and collapsing un ordered lists
