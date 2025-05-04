@@ -211,6 +211,11 @@
     }
     
 }
+.mw1024 { max-width: 1024px; max-height: 1024px; }
+.mw800 { max-width: 800px; max-height: 800px; }
+.mw480 { max-width: 480px; max-height: 480px; }
+.mw100 { max-width: 100px; max-height: 100px; }
+
 /* Table Settings 
 table {
     position: relative;
@@ -659,6 +664,44 @@ select.is-valid ~ .select2-container .select2-selection,form.was-validated selec
     display: none
 }
 
+/* input[required], textarea[required], select[required] { */
+input:invalid,
+textarea:invalid,
+select:invalid {
+    background-image: radial-gradient(red 20%, transparent 25%);
+    background-size: 1em 1em;
+    background-position: top right;
+    background-repeat: no-repeat
+}
+
+input[required]:valid,
+textarea[required]:valid,
+select[required]:valid,
+input[minlength]:valid {
+    background-image: radial-gradient(green 20%, transparent 25%);
+    background-size: 1em 1em;
+    background-position: top right;
+    background-repeat: no-repeat
+}
+/* 
+== Progress element
+*/
+.progress-primary { --progress-value: var(--bs-primary); }
+.progress-secondary { --progress-value: var(--bs-secondary); }
+.progress-info { --progress-value: var(--bs-info); }
+.progress-warning { --progress-value: var(--bs-warning); }
+.progress-success { --progress-value: var(--bs-success); }
+.progress-danger { --progress-value: var(--bs-danger); }
+
+/* background: */
+progress::-webkit-progress-bar {background-color: var(--bs-border-color); width: 100%;}
+progress {background-color: var(--bs-border-color);}
+
+/* value: */
+progress::-webkit-progress-value {background-color: var(--progress-value, #0dcaf0) !important;}
+progress::-moz-progress-bar {background-color: var(--progress-value, #0dcaf0) !important;}
+progress {color: var(--progress-value, #0dcaf0);}
+
 /*File upload input*/
 .aifile {
     position: relative;
@@ -725,4 +768,27 @@ button[type=submit].active::before {
     & img:hover {
         z-index: 2000;
     }
+}
+
+/* Material Icons Outlined to be removed after replacing bootstrap icons */
+i[translate=no] {
+    font-size: 1.3em;
+    font-family: "Material Icons Outlined";
+    font-style: normal;
+    vertical-align: middle;
+
+    /* font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased; */
+
 }
