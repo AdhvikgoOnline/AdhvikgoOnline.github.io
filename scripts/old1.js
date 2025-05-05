@@ -418,34 +418,6 @@ $('select.select2').on('select2:closing', function (e) {
         e.stopPropagation();
     });
 });
-$('body').off('click', '.callmenud, .callmenu').on('click', '.callmenud, .callmenu', function() {
-    subform(this, $(this).hasClass("showdialog"));
-});
-function subform(t, d) {
-    var fid = ""; var frm;
-    if(t.closest("article") != undefined) {
-      frm = t.closest("article,dialog"); fid = frm.id.replace("AC", '');
-    } 
-    t.id = "sub" + Math.floor(Math.random() * 10000000000) + '_' + fid;
-    
-    let v = t.dataset.menu; 
-    let s = unstr(t.dataset.style);
-    if(v == undefined) return; 
-
-    let f = "#aims" + v; 
-    if(d) $(f).addClass('showdialog');
-    let fnew = window["aims" + v];
-    if(fnew != undefined)
-    if(fnew.dataset != undefined)
-        fnew.dataset.style = s;
-    //$(f).data("style", s);
-    let c = t.dataset.menuc;
-    if(c != undefined) {
-        $(f).data('menuc', c);
-    }
-    $(f).data("calledfrom", t.id);
-    $(f).trigger('click');
-}
 
 function alltabs($t, $e) {
     $e.preventDefault();

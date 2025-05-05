@@ -189,7 +189,12 @@ class TableList extends HTMLDivElement {
     connectedCallback() {
         // Get ul and li elements that are a child of this custom ul element
         // li elements can be containers if they have uls within them
-        this.prepend(tmdaaaaaa.content.cloneNode(true));
+        let formcode = this.id.slice(-6); 
+        this.prepend(window["tmd" + formcode].content.cloneNode(true));
+        if(window["filter" + formcode] != undefined) {
+            $("#tmd" + formcode).append(window["filter" + formcode].innerHTML);
+            window["filter" + formcode].remove();
+        }
         const slength = this.querySelectorAll(".slength");
         slength[0].addEventListener("change", (e) => {
             console.log(e.target.value);
