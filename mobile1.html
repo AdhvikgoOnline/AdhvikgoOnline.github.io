@@ -1,0 +1,38 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Number Input</title>
+    <!-- Inter font for better aesthetics -->
+    <!-- Tailwind CSS for utility classes and responsive design -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.3.2/build/js/intlTelInput.min.js" integrity="sha512-O0P3kWy+DEU4z4P9saf3iWbEFSanP1YpMeI0tS39Mh/wz0yngU0tnaLnIWoPC45JUhaLNZNrpg0Hlh8216iyXQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.3.2/build/css/demo.min.css" integrity="sha512-aSEB9TAdgLoT7TbSjCH3v05X+iaOwPfSIaiVu7J7FZ2seZ+sDfoQe78zEDbPWFHhsYaoFIrGezAiNTLQQPIRmg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.3.2/build/css/intlTelInput.min.css" integrity="sha512-X3pJz9m4oT4uHCYS6UjxVdWk1yxSJJIJOJMIkf7TjPpb1BzugjiFyHu7WsXQvMMMZTnGUA9Q/GyxxCWNDZpdHA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.3.2/build/js/data.min.js" integrity="sha512-7TVZUAPReiOJ1nTEF3VvodxmeG/V3Bvu5asEdElWm8J2bqngs0b0eNPQOpQq+muDSpY95crZRkMa2PQ3q7vHsQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.3.2/build/js/intlTelInputWithUtils.min.js" integrity="sha512-DJfJ3zQjmsjESgFRrFZ6hogD9oyUSH7Wfr79rZD/e+ehIPdqn1vWHAWWGVHs1xYPzct2UhPR9Xz/aSSdWDyX6w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+    <div class="relative">
+        <input type="tel" id="mobile">
+        
+        <div class="spinner"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.3.1/build/css/intlTelInput.min.css"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.3.1/build/js/intlTelInput.min.js"></script>
+
+<script type="text/javascript">
+const input = document.querySelector("#mobile");
+window.intlTelInput(input, {
+  initialCountry: "us",
+  strictMode: true,
+  loadUtils: () => import("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.3.2/build/js/utils.min.js") // for formatting/placeholders etc
+});
+    </script>
+
+</body>
+</html>

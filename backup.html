@@ -1,0 +1,446 @@
+// vswf
+<aside class="verticalnav navbar-expand-lg">
+    <div id="verticalnav" class="verticalnav-body collapse" data-template="TempData010101">
+    </div>
+    <div class="verticalnav-footer border-top justify-content-center">
+        Powered by&nbsp;<a href="https://adhvikgoonline.com" target="_blank">Adhvik go Online</a>
+    </div>
+</aside>
+<header>
+<nav class="navbar navbar-expand-lg border-bottom w-100">
+    <div class="container-fluid">
+        <button id="btnverticalnav" class="btn navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#verticalnav" aria-controls="verticalnav" aria-expanded="false" aria-label="Toggle Navigation"><span class="navbar-toggler-icon"></span></button>
+        <a class="navbar-brand" href="#"><img src="[cpath]/img/logom.png" style="max-height:40px;margin:0 auto;"></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-content" aria-controls="navbar-content" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+        <div class="collapse navbar-collapse" id="navbar-content">
+            <div id="curTimer" class="text-bg-warning py-1 px-2 me-3 fs-4 fw-bold"><watch-time class="fs-4 fw-bold"></watch-time></div>
+            <form class="d-flex">
+                <div class="input-group">
+                    <input class="form-control mr-2" type="search" placeholder="Search" aria-label="Search">
+                    <button class="btn border" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+                <ul class="navbar-nav flex-row flex-wrap ms-md-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link d-flex gap-2 align-items-center" aria-current="page" href="home" target="_blank" title="Public Site">
+                            <i class="bi bi-globe"></i>
+                            <span class="d-md-block d-sm-none"></span>
+                        </a>
+                    </li>
+                    <li class="nav-item py-2 py-lg-1 col-12 col-lg-auto">
+                      <div class="vr d-none d-lg-flex h-100 mx-lg-2 text-white"></div>
+                      <hr class="d-lg-none my-2 text-white-50">
+                    </li>
+
+          <li class="nav-item dropdown">
+            <button type="button" class="nav-link d-flex gap-2 align-items-center dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="static">
+                <i class="bi bi-file-earmark-text"></i>
+                <span class="d-lg-none ms-2">Open Forms</span>
+                <sup id="openbadge" class="badge position-absolute top-0 start-100 translate-middle rounded-pill bg-secondary">0</sup>
+            </button>
+            <ul id="openforms" class="dropdown-menu dropdown-menu-end">
+            </ul>
+          </li>
+                    <li>
+                        <button class="btn btn-outline-primary border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offSettings" aria-controls="offSettings"><i class="bi bi-gear"></i></button>
+                    </li>
+                    <li class="nav-item py-2 py-lg-1 col-12 col-lg-auto">
+                      <div class="vr d-none d-lg-flex h-100 mx-lg-2 text-white"></div>
+                      <hr class="d-lg-none my-2 text-white-50">
+                    </li>
+                    [Adhvikwebx`75_65`1-o-F099017```` /]
+                    <li class="nav-item py-2 py-lg-1 col-12 col-lg-auto">
+                      <div class="vr d-none d-lg-flex h-100 mx-lg-2 text-white"></div>
+                      <hr class="d-lg-none my-2 text-white-50">
+                    </li>
+                    <li class="nav-item col-6 col-lg-auto">
+                      <a class="nav-link py-2 px-0 px-lg-2" href="logout.aspx"><i class="bi bi-box-arrow-right"></i>
+                        <small class="d-lg-none ms-2">Logout</small>
+                      </a>
+                    </li>
+
+                  </ul>
+        </div>
+    </div>
+</nav>
+</header>
+<main>
+    <article id="AC000000" data-pbutton="#aim000000" data-parent="" data-formview="" class="aibcontent hdform animate__animated animate__fadeIn listentry"><header class="sticky-top" style=".top:var(--top);"><nav class="navbar navbar-expand-lg w-100 px-1 px-lg-2"><h4 class="mb-0 ftitle d-flex gap-2 align-items-center"><i class="bi bi-speedometer"></i><span>Dashboard</span></h4></nav></header> 
+    <div class="article-body"><div id="mainDash" class="grids grid-3 grid-1s gg32"></div></div>
+    </article>
+</main>
+<script id="TempData010101" type="text/x-handlebars">
+    <ul class="navbar-nav flex-column w-100">
+        {{#data1}}
+        {{#if Level1}}
+        <li class="nav-item"><a data-bs-toggle="collapse" href="#aimss{{MenuId}}" role="button" aria-expanded="false" aria-controls="aimss{{MenuId}}" class="nav-link d-flex gap-2 align-items-center" id="aims{{MenuId}}">{{#if MIcon}}{{{MIcon}}}{{else}}<i class="bi bi-bookmark"></i>{{/if}}<span>{{MName}}</span></a>
+        {{else}}
+        <li class="nav-item"><a data-f="{{MenuId}}`1-{{FormDir}}-F{{FormCode}}`false`{{FCondition}}`{{BtnHead}}`{{BtnFoot}}`{{FView}}`{{CloseOnSubmit}}`{{ModalStyle}}`{{ModalClass}}`" class="nav-link d-flex gap-2 align-items-center" id="aims{{MenuId}}">{{#if MIcon}}{{{MIcon}}}{{else}}<i class="bi bi-link-45deg"></i>{{/if}}<span>{{MName}}</span></a></li>
+        {{/if}}
+        {{#if Level1}}
+        <div class="collapse" id="aimss{{MenuId}}">
+            <ul class="nav flex-column ">
+            {{#Level1}}
+            {{#if Level2}}
+            <li class="nav-item"><a data-bs-toggle="collapse" href="#aimss{{MenuId}}" role="button" aria-expanded="false" aria-controls="aimss{{MenuId}}" class="nav-link d-flex gap-2 align-items-center" id="aims{{MenuId}}">{{#if MIcon}}{{{MIcon}}}{{else}}<i class="bi bi-bookmark"></i>{{/if}}<span>{{MName}}</span></a>
+            {{else}}
+            <li class="nav-item"><a data-f="{{MenuId}}`1-{{FormDir}}-F{{FormCode}}`false`{{FCondition}}`{{BtnHead}}`{{BtnFoot}}`{{FView}}`{{CloseOnSubmit}}`{{ModalStyle}}`{{ModalClass}}`" class="nav-link d-flex gap-2 align-items-center" id="aims{{MenuId}}">{{#if MIcon}}{{{MIcon}}}{{else}}<i class="bi bi-link-45deg"></i>{{/if}}<span>{{MName}}</span></a></li>
+            {{/if}}
+            {{#if Level2}}
+            <div class="collapse" id="aimss{{MenuId}}">
+                <ul class="nav flex-column ">
+                {{#Level2}}
+                {{#if Level3}}
+                <li class="nav-item"><a data-bs-toggle="collapse" href="#aimss{{MenuId}}" role="button" aria-expanded="false" aria-controls="aimss{{MenuId}}" class="nav-link d-flex gap-2 align-items-center" id="aims{{MenuId}}">{{#if MIcon}}{{{MIcon}}}{{else}}<i class="bi bi-bookmark"></i>{{/if}}<span>{{MName}}</span></a>
+                {{else}}
+                <li class="nav-item"><a data-f="{{MenuId}}`1-{{FormDir}}-F{{FormCode}}`false`{{FCondition}}`{{BtnHead}}`{{BtnFoot}}`{{FView}}`{{CloseOnSubmit}}`{{ModalStyle}}`{{ModalClass}}`" class="nav-link d-flex gap-2 align-items-center" id="aims{{MenuId}}">{{#if MIcon}}{{{MIcon}}}{{else}}<i class="bi bi-link-45deg"></i>{{/if}}<span>{{MName}}</span></a></li>
+                {{/if}}
+                {{#if Level3}}
+                <div class="collapse" id="aimss{{MenuId}}">
+                    <ul class="nav flex-column ">
+                    {{#Level3}}
+                    {{#if Level4}}
+                    <li class="nav-item"><a data-bs-toggle="collapse" href="#aimss{{MenuId}}" role="button" aria-expanded="false" aria-controls="aimss{{MenuId}}" class="nav-link d-flex gap-2 align-items-center" id="aims{{MenuId}}">{{#if MIcon}}{{{MIcon}}}{{else}}<i class="bi bi-bookmark"></i>{{/if}}<span>{{MName}}</span></a>
+                    {{else}}
+                    <li class="nav-item"><a data-f="{{MenuId}}`1-{{FormDir}}-F{{FormCode}}`false`{{FCondition}}`{{BtnHead}}`{{BtnFoot}}`{{FView}}`{{CloseOnSubmit}}`{{ModalStyle}}`{{ModalClass}}`" class="nav-link d-flex gap-2 align-items-center" id="aims{{MenuId}}">{{#if MIcon}}{{{MIcon}}}{{else}}<i class="bi bi-link-45deg"></i>{{/if}}<span>{{MName}}</span></a></li>
+                    {{/if}}
+                    {{/Level3}}
+                            </ul>
+                        </div>
+                    </li>
+                {{/if}}
+                {{/Level2}}
+                        </ul>
+                    </div>
+                </li>
+            {{/if}}
+            {{/Level1}}
+                </ul>
+            </div>
+        </li>
+        {{/if}}
+        {{/data1}}
+    </ul>
+</script>
+    <script>
+        $(function() {
+            var mndash = "";
+            aifetchq("", "do=1-o-vaaaaaaDashboard", "dashboard", "", "", "", function (d) {
+                let dl = d.data1.length;
+                if(dl > 0) {
+                    for (tt = 0; tt < dl; tt++) {
+                        var v1 = (d.data1[tt].Value1 || '').split(',');
+                        for(ff = 0; ff < v1.length; ff++) {
+                            if(v1[ff] != '') {
+                                let nmndash = mndash.indexOf(v1[ff]);
+                                try {
+                                    if(nmndash < 0) {
+                                        $('#mainDash').append(`<div id="dash${v1[ff]}"></div>`);
+                                        aifetchf("", "1-d-F" + v1[ff] + "``", false, v1[ff], function (data) { 
+                                            $("#dash" + data.substr(15,6)).append($(".article-body", data).html());
+                                        });
+                                    }
+                                } catch (e) {}
+                                mndash += "," + v1[ff];
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+<script>
+    $(function () {
+        const tmpq = $("#verticalnav");
+        aifetchq(tmpq, "do=1-o-vaaaaaaSideMenu1", "menus", "", "", "", function (d) {
+            //toastr[d.data0[0].status](d.data0[0].message);
+        });
+        $("#activeformparameters").click(function() {
+            if("[uid]" != "10000000") return;
+            console.clear();
+            let paramvalues = "";
+            $("[data-param]", "dialog.show, main > article:not(.d-none)").each(function() {
+                console.log(this); 
+                if($(this).data('param').indexOf('_') >= 0)
+                    paramvalues = $(this).data('param').split('_')[1].replace('c','').replace('d','').replace('s','') + ",";
+            });
+            if(paramvalues != "") {
+                aifetchq("", "do=1-o-b099033Table&length=10&start=0&search[value]=&cond=a.APIId IN ("+paramvalues+"0)", 'list',"","","", function(d) {}, function(d) {
+                    let dt = d.data1;
+                    for(i=0;i<dt.length;i++){
+                        console.log(`${dt[i].ModuleId}_${dt[i].APIId}-${dt[i].a}-${dt[i].p}-${dt[i].c} = Table:${dt[i].TName}, Primary Cond: ${dt[i].PkFCnd}, 
+                            Display columns: ${dt[i].DisplayCol}, Table Order: ${dt[i].TableOrder}, Search Col: ${dt[i].SearchCol}, Table Cond: ${dt[i].TableCond},
+                            Id Text: ${dt[i].IdText}, Dropdown Order: ${dt[i].DropDownOrder}`);
+                    }
+                });
+            }
+            $("[name*=GTypeId]", "dialog.show, main > article:not(.d-none)").each(function() {
+                console.log(this); 
+                let cvalue = this.value;
+                aifetchq("", "do=1-b7_6s&length=10&start=0&search[value]=&cond=a.GId="+cvalue, 'list',"","","", function(d) {}, function(d) {
+                    let dt = d.data1[0];
+                    console.log(`generalsettings - GTypeId:${dt.GId}, GTitle:${dt.GTitle}`)
+                });
+            });
+            $("[name*=TrnTypeId]", "dialog.show, main > article:not(.d-none)").each(function() {
+                console.log(this);
+                let cvalue = this.value;
+                aifetchq("", "do=1-b7_18s&length=10&start=0&search[value]=&cond=a.GId="+cvalue, 'list',"","","", function(d) {}, function(d) {
+                    let dt = d.data1[0];
+                    console.log(`generalsettings:TrnType - GTypeId:${dt.GId}, GTitle:${dt.GTitle}`)
+                });
+            });
+            $("[name*=PTypeId]", "dialog.show, main > article:not(.d-none)").each(function() {
+                console.log(this);
+                let cvalue = this.value;
+                aifetchq("", "do=1-b7_8s&length=10&start=0&search[value]=&cond=a.GId="+cvalue, 'list',"","","", function(d) {}, function(d) {
+                    let dt = d.data1[0];
+                    console.log(`generalsettings: Posts - GTypeId:${dt.GId}, GTitle:${dt.GTitle}`)
+                });
+            });
+            $("[name*=AccountTypeId]", "dialog.show, main > article:not(.d-none)").each(function() {
+                console.log(this);
+                let cvalue = this.value;
+                aifetchq("", "do=1-b7_7s&length=10&start=0&search[value]=&cond=a.GId="+cvalue, 'list',"","","", function(d) {}, function(d) {
+                    let dt = d.data1[0];
+                    console.log(`generalsettings:Account - GTypeId:${dt.GId}, GTitle:${dt.GTitle}`)
+                });
+            });
+        });
+    });
+</script>
+//===== swayam
+
+<aside class="verticalnav navbar-expand-lg">
+    <div id="verticalnav" class="verticalnav-body collapse" data-template="TempData010101">
+    </div>
+    <div class="verticalnav-footer border-top justify-content-center">
+        Powered by&nbsp;<a href="https://adhvikgoonline.com" target="_blank">Adhvik go Online</a>
+    </div>
+</aside>
+<header>
+<!-- Start Mega Menu HTML -->
+<nav class="navbar navbar-expand-lg border-bottom w-100">
+    <div class="container-fluid">
+        <button id="btnverticalnav" class="btn navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#verticalnav" aria-controls="verticalnav" aria-expanded="false" aria-label="Toggle Navigation"><span class="navbar-toggler-icon"></span></button>
+        <a class="navbar-brand" href="#"><img src="[cpath]/img/logom.png" style="max-height:40px;margin:0 auto;"></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-content" aria-controls="navbar-content" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+        <div class="collapse navbar-collapse" id="navbar-content">
+            <form class="d-flex">
+                <div class="input-group">
+                    <input class="form-control mr-2" type="search" placeholder="Search" aria-label="Search">
+                    <button class="btn border" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+                <ul class="navbar-nav flex-row flex-wrap ms-md-auto">
+                    <li class="nav-item"> <a data-menu="20" data-style="min-width: 100vw;" class="nav-link icon-link callmenud showdialog"
+                            title="Error API"><svg class="w-1" fill="currentColor">
+                                <use href="#link"></use>
+                            </svg><span class="d-md-block d-sm-none">Error API</span></a> </li>
+                    <li class="nav-item"> <a data-menu="21" data-style="min-width: 100vw;" class="nav-link icon-link callmenud showdialog"
+                            title="Website Files"><svg class="w-1" fill="currentColor">
+                                <use href="#link"></use>
+                            </svg><span class="d-md-block d-sm-none">Website Files</span></a> </li>
+                    <li class="nav-item"> <a data-menu="18" data-style="min-width: 100vw;" class="nav-link icon-link callmenud showdialog"
+                            title="Form"><svg class="w-1" fill="currentColor">
+                                <use href="#link"></use>
+                            </svg><span class="d-md-block d-sm-none">Form</span></a> </li>
+                    <li class="nav-item"> <a data-menu="307" data-style="min-width: 100vw;" class="nav-link icon-link callmenud showdialog"
+                            title="Project"><svg class="w-1" fill="currentColor">
+                                <use href="#link"></use>
+                            </svg><span class="d-md-block d-sm-none">Project</span></a> </li>                    
+                    <li class="nav-item">
+                        <a class="nav-link icon-link" aria-current="page" href="home" target="_blank" title="Public Site">
+                            <svg class="bi my-1"><use href="#globe"></use></svg>
+                            <span class="d-md-block d-sm-none">Public Site</span>
+                        </a>
+                    </li>
+                    <li class="nav-item py-2 py-lg-1 col-12 col-lg-auto">
+                      <div class="vr d-none d-lg-flex h-100 mx-lg-2 text-white"></div>
+                      <hr class="d-lg-none my-2 text-white-50">
+                    </li>
+
+          <li class="nav-item dropdown">
+            <button type="button" class="nav-link icon-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="static">
+                <svg class="bi my-1"><use href="#file-earmark-text"></use></svg>
+                <span class="d-lg-none ms-2">Open Forms</span>
+            </button>
+            <ul id="openforms" class="dropdown-menu dropdown-menu-end">
+            </ul>
+          </li>
+                    <li class="nav-item py-2 py-lg-1 col-12 col-lg-auto">
+                      <div class="vr d-none d-lg-flex h-100 mx-lg-2 text-white"></div>
+                      <hr class="d-lg-none my-2 text-white-50">
+                    </li>
+          
+                    <li class="nav-item dropdown">
+                      <button class="icon-link nav-link dropdown-toggle" id="bd-theme" type="button" aria-expanded="false" data-bs-toggle="dropdown" data-bs-display="static" aria-label="Toggle theme (light)">
+                        <svg class="bi my-1 theme-icon-active"><use href="#sun-fill"></use></svg>
+                        <span class="d-lg-none ms-2" id="bd-theme-text">Toggle theme</span>
+                      </button>
+                      <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="bd-theme-text">
+                        <li>
+                          <button type="button" class="dropdown-item icon-link " data-bs-theme-value="light">
+                            <svg class="bi me-2 opacity-50 theme-icon"><use href="#sun-fill"></use></svg>
+                            Light
+                            <svg class="bi ms-auto d-none"><use href="#check2"></use></svg>
+                          </button>
+                        </li>
+                        <li>
+                          <button type="button" class="dropdown-item icon-link" data-bs-theme-value="dark" aria-pressed="false">
+                            <span><svg class="bi me-2 opacity-50"><use href="#moon-stars-fill"></use></svg></span>
+                            Dark
+                            <svg class="bi ms-auto d-none"><use href="#check2"></use></svg>
+                          </button>
+                        </li>
+                        <li>
+                          <button type="button" class="dropdown-item icon-link" data-bs-theme-value="auto" aria-pressed="false">
+                            <svg class="bi me-2 opacity-50 theme-icon"><use href="#circle-half"></use></svg>
+                            Auto
+                            <svg class="bi ms-auto d-none"><use href="#check2"></use></svg>
+                          </button>
+                        </li>
+                      </ul>
+                    </li>
+                    [Adhvikwebx`75_65`1-o-F099017```` /]
+                    <li class="nav-item py-2 py-lg-1 col-12 col-lg-auto">
+                      <div class="vr d-none d-lg-flex h-100 mx-lg-2 text-white"></div>
+                      <hr class="d-lg-none my-2 text-white-50">
+                    </li>
+                    <li class="nav-item col-6 col-lg-auto">
+                      <a class="nav-link py-2 px-0 px-lg-2" href="logout.aspx">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
+                            <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                        </svg>
+                        <small class="d-lg-none ms-2">Logout</small>
+                      </a>
+                    </li>
+
+                  </ul>
+            <!-- <ul class="navbar-nav d-flex ms-auto d-none">
+                <li class="nav-item custom-buttons">
+                </li>
+                <li class="nav-item">
+                    <button type="button" accesskey="a" value="addrecord" class="nav-link btnno btn7" title="Add new"><i translate="no">add</i><span>New</span></button>
+                </li>
+                <li class="nav-item"><button type="button" accesskey="l" value="showlist" class="nav-link btnno btn7" title="Show List Only"><i translate="no">list_alt</i><span>List</span></button></li>
+                <li class="nav-item dropdown"><button type="button" accesskey="d" class="shownext nav-link dropdown-toggle" data-bs-toggle="dropdown"
+                        data-bs-auto-close="outside"><i translate="no">more_vert</i></button>
+                    <ul class="dropdown-menu shadow dropdown-menu-end">
+                        <li><button class="dropdown-item" type="button" accesskey="e" value="showentry" title="Show Entry Form"><i translate="no">edit</i><span>Edit</span></button></li>
+                        <li><button class="dropdown-item" type="button" accesskey="w" value="showlistentry" title="Show List and Entry Form"><i translate="no">horizontal_split</i><span>Show List and Entry Form</span></button></li>
+                        <li><button class="dropdown-item" type="button" accesskey="h" value="showhidden" title="Show hidden fields - _0_"><i translate="no">code</i><span>Show hidden fields</span></button></li>
+                        <li><button class="dropdown-item" type="button" accesskey="t" value="showtiny" title="Compress Form / Small control display"><i translate="no" class="rcexpand1"></i><input type="checkbox" checked="" class="aihide"><span>Compress Form</span></button></li>
+                        <li><button class="dropdown-item" type="button" accesskey="z" class="fzoom"><i translate="no" class="rczoom"></i><input type="checkbox" class="aihide"><span>Zoom</span></button></li>
+                        <li><button class="dropdown-item" type="button" accesskey="q" data-menu="007005```x``4`1```" title="Raise Query or Request" class="showdialog"><i translate="no">report_problem</i><span>Raise Query or Request</span></button></li>
+                        <li><button class="dropdown-item" type="button" accesskey="k" data-menu="092003`_1_``x``4`1```" value="showtasks" title="Show Tasks" class="showdialog"><i translate="no">task</i><span>Show Tasks</span></button></li>
+                        <li><button class="dropdown-item" type="button" accesskey="w" class="themeswitch"><i translate="no" class="rcdark"></i><input type="checkbox" checked="" class="aihide"></button></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" type="button" accesskey="x" value="closeform" title="Close Form _0_"><i translate="no">close</i></button>
+                </li>
+            </ul> -->
+        </div>
+    </div>
+</nav><!-- END Mega Menu HTML -->
+</header>
+<main>
+    <article id="AC000000" data-pbutton="#aim000000" data-parent="" data-formview="undefined" class="aibcontent hdform animate__animated animate__fadeIn listentry"><header class="sticky-top" style=".top:var(--top);"><nav class="navbar navbar-expand-lg w-100 px-1 px-lg-2"><h4 class="mb-0 ftitle d-flex gap-2 align-items-center"><svg class="w-1" fill="currentColor"><use href="#dashboard"></use></svg><span>Dashboard</span></h4></nav></header> 
+    <div class="article-body"><div id="mainDash" class="grids grid-3 grid-1s gg32"></div></div>
+    <script>
+        $(function() {
+            var mndash = "";
+            aifetchq("", "do=1-o-vaaaaaaDashboard", "dashboard", "", "", "", function (d) {
+                let dl = d.data1.length;
+                if(dl > 0) {
+                    for (tt = 0; tt < dl; tt++) {
+                        var v1 = (d.data1[tt].Value1 || '').split(',');
+                        for(ff = 0; ff < v1.length; ff++) {
+                            if(v1[ff] != '') {
+                                let nmndash = mndash.indexOf(v1[ff]);
+                                try {
+                                    if(nmndash < 0) {
+                                        $('#mainDash').append(`<div id="dash${v1[ff]}"></div>`);
+                                        aifetchf("", "1-d-F" + v1[ff] + "``", false, v1[ff], function (data) { 
+                                            $("#dash" + data.substr(15,6)).append($(".article-body", data).html());
+                                        });
+                                    }
+                                } catch (e) {}
+                                mndash += "," + v1[ff];
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+    
+    </article>
+</main>
+<script id="TempData010101" type="text/x-handlebars">
+    <ul class="navbar-nav flex-column w-100">
+        {{#data1}}
+        {{#if Level1}}
+        <li class="nav-item"><a data-bs-toggle="collapse" href="#aimss{{MenuId}}" role="button" aria-expanded="false" aria-controls="aimss{{MenuId}}" class="nav-link icon-link" id="aims{{MenuId}}">{{#if MIcon}}{{{MIcon}}}{{else}}<svg class="w-1" fill="currentColor"><use href="#bookmark"></use></svg>{{/if}}<span>{{MName}}</span></a>
+        {{else}}
+        <li class="nav-item"><a data-f="{{MenuId}}`1-{{FormDir}}-F{{FormCode}}`false`{{FCondition}}`{{BtnHead}}`{{BtnFoot}}`{{FView}}`{{CloseOnSubmit}}`{{ModalStyle}}`{{ModalClass}}`" class="nav-link icon-link" id="aims{{MenuId}}">{{#if MIcon}}{{{MIcon}}}{{else}}<svg class="w-1" fill="currentColor"><use href="#link"></use></svg>{{/if}}<span>{{MName}}</span></a></li>
+        {{/if}}
+        {{#if Level1}}
+        <div class="collapse" id="aimss{{MenuId}}">
+            <ul class="nav flex-column ">
+            {{#Level1}}
+            {{#if Level2}}
+            <li class="nav-item"><a data-bs-toggle="collapse" href="#aimss{{MenuId}}" role="button" aria-expanded="false" aria-controls="aimss{{MenuId}}" class="nav-link icon-link" id="aims{{MenuId}}">{{#if MIcon}}{{{MIcon}}}{{else}}<svg class="w-1" fill="currentColor"><use href="#bookmark"></use></svg>{{/if}}<span>{{MName}}</span></a>
+            {{else}}
+            <li class="nav-item"><a data-f="{{MenuId}}`1-{{FormDir}}-F{{FormCode}}`false`{{FCondition}}`{{BtnHead}}`{{BtnFoot}}`{{FView}}`{{CloseOnSubmit}}`{{ModalStyle}}`{{ModalClass}}`" class="nav-link icon-link" id="aims{{MenuId}}">{{#if MIcon}}{{{MIcon}}}{{else}}<svg class="w-1" fill="currentColor"><use href="#link"></use></svg>{{/if}}<span>{{MName}}</span></a></li>
+            {{/if}}
+            {{#if Level2}}
+            <div class="collapse" id="aimss{{MenuId}}">
+                <ul class="nav flex-column ">
+                {{#Level2}}
+                {{#if Level3}}
+                <li class="nav-item"><a data-bs-toggle="collapse" href="#aimss{{MenuId}}" role="button" aria-expanded="false" aria-controls="aimss{{MenuId}}" class="nav-link icon-link" id="aims{{MenuId}}">{{#if MIcon}}{{{MIcon}}}{{else}}<svg class="w-1" fill="currentColor"><use href="#bookmark"></use></svg>{{/if}}<span>{{MName}}</span></a>
+                {{else}}
+                <li class="nav-item"><a data-f="{{MenuId}}`1-{{FormDir}}-F{{FormCode}}`false`{{FCondition}}`{{BtnHead}}`{{BtnFoot}}`{{FView}}`{{CloseOnSubmit}}`{{ModalStyle}}`{{ModalClass}}`" class="nav-link icon-link" id="aims{{MenuId}}">{{#if MIcon}}{{{MIcon}}}{{else}}<svg class="w-1" fill="currentColor"><use href="#link"></use></svg>{{/if}}<span>{{MName}}</span></a></li>
+                {{/if}}
+                {{#if Level3}}
+                <div class="collapse" id="aimss{{MenuId}}">
+                    <ul class="nav flex-column ">
+                    {{#Level3}}
+                    {{#if Level4}}
+                    <li class="nav-item"><a data-bs-toggle="collapse" href="#aimss{{MenuId}}" role="button" aria-expanded="false" aria-controls="aimss{{MenuId}}" class="nav-link icon-link" id="aims{{MenuId}}">{{#if MIcon}}{{{MIcon}}}{{else}}<svg class="w-1" fill="currentColor"><use href="#bookmark"></use></svg>{{/if}}<span>{{MName}}</span></a>
+                    {{else}}
+                    <li class="nav-item"><a data-f="{{MenuId}}`1-{{FormDir}}-F{{FormCode}}`false`{{FCondition}}`{{BtnHead}}`{{BtnFoot}}`{{FView}}`{{CloseOnSubmit}}`{{ModalStyle}}`{{ModalClass}}`" class="nav-link icon-link" id="aims{{MenuId}}">{{#if MIcon}}{{{MIcon}}}{{else}}<svg class="w-1" fill="currentColor"><use href="#link"></use></svg>{{/if}}<span>{{MName}}</span></a></li>
+                    {{/if}}
+                    {{/Level3}}
+                            </ul>
+                        </div>
+                    </li>
+                {{/if}}
+                {{/Level2}}
+                        </ul>
+                    </div>
+                </li>
+            {{/if}}
+            {{/Level1}}
+                </ul>
+            </div>
+        </li>
+        {{/if}}
+        {{/data1}}
+    </ul>
+</script>
+<script>
+    $(function () {
+        const tmpq = $("#verticalnav");
+        aifetchq(tmpq, "do=1-o-vaaaaaaSideMenu1", "menus", "", "", "", function (d) {
+            toastr[d.data0[0].status](d.data0[0].message);
+        });
+    });
+</script>

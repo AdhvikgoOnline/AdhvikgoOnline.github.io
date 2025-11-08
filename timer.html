@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Timer Web Component (Using Bootstrap)</title>
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Bootstrap Icons CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+
+<body>
+    <div class="d-flex">
+        <task-timer start-date="2025-06-12T10:00:00" timer-group="group-A" is-single="true"></task-timer>
+        <task-timer timer-group="group-A" is-single="true"></task-timer>
+        <task-timer timer-group="group-A" is-single="true"></task-timer>
+
+        <task-timer start-date="2025-06-12T10:00:00"></task-timer>
+        <task-timer start-date="2025-06-12T10:05:00"></task-timer>
+
+        <task-timer start-date="2025-06-12T10:00:00" timer-group="group-B"></task-timer>
+        <task-timer start-date="2025-06-12T10:05:00" timer-group="group-B"></task-timer>
+    </div>
+    <script>
+        // Global map to manage timer groups for 'is-single' functionality
+        const timerGroups = new Map();
+
+        class TaskTimer extends HTMLElement {
+            // Observe changes to these attributes
+            static get observedAttributes() {
+                return ['start-date', 'timer-group', 'is-single'];
+            }
+
+            constructor() {
+                super();
+                // Internal state variables
+                this._startDate = new Date(this.getAttribute('start-date'));
+                this._initialStartDate = new Date(this.getAttribute('start-date')); // Store initial for clear
+                this._intervalId = null;
+                this._running = false;
+                this._group = this.getAttribute('timer-group') || null;
+                this._isSingle = this.getAttribute('is-single') === 'true';
+
+                // Elements to be manipulated - these will now be queried directly from the component itself
+                this._displayElement = null;
+                this._toggleButton = null;
+                this._clearButton = null;
+
+                // Bind methods to 'this'
+                this._toggleTimer = this._toggleTimer.bind(this);
+                this._clearTimer = this._clearTimer.bind(this);
+                this._updateDisplay = this._updateDisplay.bind(this);
+            }
+
+            connectedCallback() {
+                // Render the component's structure directly into the element
+                this._render();
+
+                // Only get references and add event listeners if buttons are rendered (i.e., if is-single is true)
+                if (this._isSingle) {
+                    this._displayElement = this.querySelector('.timer-display');
+                    this._toggleButton = this.querySelector('.start-stop-button');
+                    this._clearButton = this.querySelector('.clear-button');
+
+                    // Add event listeners
+                    if (this._toggleButton) { // Check if button exists
+                        this._toggleButton.addEventListener('click', this._toggleTimer);
+                    }
+                    if (this._clearButton) { // Check if button exists
+                        this._clearButton.addEventListener('click', this._clearTimer);
+                    }
+                    // For is-single, start timer if it was running before, or if it's the first time and meant to be on
+                    if (this._running || (this.hasAttribute('start-date') && !this._intervalId)) {
+                        this._startTimer();
+                    }
+                } else {
+                    // For non-single timers, we still need to get the display element
+                    this._displayElement = this.querySelector('.timer-display');
+                    // Automatically start timer if start-date is specified and it's not a single timer
+                    if (this.hasAttribute('start-date')) {
+                        this._startTimer();
+                    }
+                }
+
+                // Add this timer instance to its group
+                this._registerWithGroup();
+
+                // Initial display update
+                this._updateDisplay();
+
+                // Removed: Logic for adding fixed-top class and body class
+            }
+
+            disconnectedCallback() {
+                // Clean up: remove event listeners and clear interval
+                if (this._isSingle) { // Only remove listeners if buttons were actually present
+                    if (this._toggleButton) {
+                        this._toggleButton.removeEventListener('click', this._toggleTimer);
+                    }
+                    if (this._clearButton) {
+                        this._clearButton.removeEventListener('click', this._clearTimer);
+                    }
+                }
+                this._stopTimer(); // Ensure interval is cleared
+                this._deregisterFromGroup(); // Remove from global group map
+
+                // Removed: Logic for removing fixed-top class and body class
+            }
+
+            attributeChangedCallback(name, oldValue, newValue) {
+                // Handle attribute changes
+                if (oldValue === newValue) return;
+
+                switch (name) {
+                    case 'start-date':
+                        this._startDate = new Date(newValue);
+                        this._initialStartDate = new Date(newValue);
+                        if (!this._running && !this._isSingle) { // If not running and not a single timer, update display
+                            this._updateDisplay();
+                            this._startTimer(); // And start it
+                        } else if (!this._running && this._isSingle) {
+                            this._updateDisplay(); // Only update display if it's a single timer and not running
+                        }
+                        break;
+                    case 'timer-group':
+                        // Re-register if group changes
+                        this._deregisterFromGroup(oldValue);
+                        this._group = newValue;
+                        this._registerWithGroup();
+                        break;
+                    case 'is-single':
+                        this._isSingle = newValue === 'true';
+                        // Re-render the component to reflect button visibility change
+                        this._render();
+                        // Re-establish element references and event listeners if becoming a single timer
+                        if (this._isSingle) {
+                            this._displayElement = this.querySelector('.timer-display');
+                            this._toggleButton = this.querySelector('.start-stop-button');
+                            this._clearButton = this.querySelector('.clear-button');
+                            if (this._toggleButton) {
+                                this._toggleButton.addEventListener('click', this._toggleTimer);
+                            }
+                            if (this._clearButton) {
+                                this._clearButton.addEventListener('click', this._clearTimer);
+                            }
+                            // If it becomes single, and was previously running, restart it to ensure single rule
+                            if (this._running) {
+                                this._startTimer();
+                            }
+                        } else {
+                            // If it stops being single, remove listeners and stop timer, then start automatically
+                            this._stopTimer();
+                            if (this._toggleButton) {
+                                this._toggleButton.removeEventListener('click', this._toggleTimer);
+                            }
+                            if (this._clearButton) {
+                                this._clearButton.removeEventListener('click', this._clearTimer);
+                            }
+                            this._toggleButton = null; // Clear references
+                            this._clearButton = null;
+                            this._startTimer(); // Start automatically as it's no longer 'is-single'
+                        }
+                        this._updateDisplay(); // Ensure display is updated after render
+                        break;
+                }
+            }
+
+            /**
+             * Renders the HTML structure for the web component directly into its host element.
+             * Includes the display, and optionally start/stop button, and clear button with Bootstrap Icons.
+             * Applies Bootstrap classes for styling.
+             */
+            _render() {
+                let buttonsHtml = '';
+                if (this._isSingle) {
+                    buttonsHtml = `
+                            <button class="clear-button btn btn-warning d-none border-0" type="button">
+                                <i class="bi-arrow-counterclockwise"></i>
+                                <span class="d-none">Clear</span>
+                            </button>
+                            <button class="start-stop-button btn btn-outline-primary text-body border-0" type="button">
+                                <i class="bi-play-fill"></i>
+                                <span class="d-none">Start</span>
+                            </button>
+                    `;
+                }
+
+                this.innerHTML = `
+                    <div class="btn-group d-flex align-items-center">
+                        <div class="timer-display btn btn-warning border-0"></div>
+                        ${buttonsHtml}
+                    </div>
+                `;
+            }
+
+            /**
+             * Toggles the timer's running state (start/stop).
+             */
+            _toggleTimer() {
+                if (!this._isSingle || !this._toggleButton) return; // Only toggle if it's a single timer with buttons
+
+                if (this._running) {
+                    document.querySelectorAll('task-timer').forEach(element => {
+                        element.classList.remove("active");
+                    });
+                    this.classList.add("active");
+                    const bsOffcanvas = new bootstrap.Offcanvas('#offcanvasExample');
+                    bsOffcanvas.show(); // Show offcanvas if it's open
+                    //this._stopTimer();
+                } else {
+                    this._startTimer();
+                }
+            }
+
+            /**
+             * Starts the timer. If 'is-single' is true for the group, stops other timers in the same group.
+             */
+            _startTimer() {
+                if (this._running) return; // Already running
+
+                this._running = true;
+                // Only update button text and color if buttons exist (i.e., if is-single)
+                if (this._isSingle && this._toggleButton) {
+                    this._toggleButton.innerHTML = '<i class="bi-stop-fill"></i><span class="d-none">Stop</span>';
+                    this._toggleButton.classList.remove('btn-outline-primary');
+                    this._toggleButton.classList.add('btn-warning');
+                }
+
+                // Implement 'is-single' logic
+                if (this._group && this._isSingle) {
+                    const groupTimers = timerGroups.get(this._group);
+                    if (groupTimers) {
+                        groupTimers.forEach(timer => {
+                            if (timer !== this && timer._running) {
+                                timer._stopTimer(); // Stop other running timers in the same group
+                            }
+                        });
+                    }
+                }
+                if (!this.hasAttribute("start-date")) {
+                    this.setAttribute("start-date", new Date().toISOString()); // Set start-date to now if not set
+                    this._displayElement.classList.add('btn-warning', "btn");
+                }
+                // Set interval to update display every second
+                this._intervalId = setInterval(this._updateDisplay, 1000);
+            }
+
+            /**
+             * Stops the timer.
+             */
+            _stopTimer() {
+                if (!this._running) return; // Already stopped
+
+                this._running = false;
+                // Only update button text and color if buttons exist (i.e., if is-single)
+                if (this._isSingle && this._toggleButton) {
+                    this._toggleButton.innerHTML = '<i class="bi-play-fill"></i><span class="d-none">Start</span>';
+                    this._toggleButton.classList.remove('btn-warning');
+                    this._toggleButton.classList.add('btn-outline-primary');
+                }
+
+                // Clear the interval
+                clearInterval(this._intervalId);
+                this._intervalId = null;
+                this.removeAttribute('start-date'); // Remove start-date to reset the timer
+                this._displayElement.innerHTML = ''; // Update display to show 00:00:00
+            }
+
+            /**
+             * Clears the timer, resetting it to its initial state (based on start-date) and stopping it.
+             */
+            _clearTimer() {
+                if (!this._isSingle || !this._clearButton) return; // Only clear if it's a single timer with buttons
+
+                this._stopTimer(); // Stop the timer first
+                this._startDate = new Date(this._initialStartDate); // Reset start date to original
+                this._updateDisplay(); // Update display to show 00:00:00 (or initial elapsed)
+            }
+
+            /**
+             * Updates the timer display with the elapsed time.
+             */
+            _updateDisplay() {
+                if (!this._displayElement) return;
+
+                if (!this.hasAttribute("start-date")) {
+                    this._displayElement.classList.remove('btn-warning', "btn");
+                    return;
+                }
+                const now = Date.now();
+                const elapsedMilliseconds = now - this._startDate.getTime();
+
+                // Ensure elapsed time is not negative (if start-date is in the future)
+                // For this component, we'll display 00:00:00 if start-date is in the future.
+                const totalSeconds = Math.max(0, Math.floor(elapsedMilliseconds / 1000));
+
+                const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+                const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+                const seconds = String(totalSeconds % 60).padStart(2, '0');
+                this._displayElement.textContent = `${hours}:${minutes}:${seconds}`;
+            }
+
+            /**
+             * Registers this timer instance with its group in the global map.
+             */
+            _registerWithGroup() {
+                if (this._group) {
+                    if (!timerGroups.has(this._group)) {
+                        timerGroups.set(this._group, new Set());
+                    }
+                    timerGroups.get(this._group).add(this);
+                }
+            }
+
+            /**
+             * Deregisters this timer instance from its group in the global map.
+             */
+            _deregisterFromGroup(oldGroup = this._group) {
+                if (oldGroup && timerGroups.has(oldGroup)) {
+                    const groupSet = timerGroups.get(oldGroup);
+                    groupSet.delete(this);
+                    if (groupSet.size === 0) {
+                        timerGroups.delete(oldGroup); // Clean up empty groups
+                    }
+                }
+            }
+        }
+
+        // Define the custom element
+        customElements.define('task-timer', TaskTimer);
+    </script>
+    <!-- Bootstrap JavaScript CDN (bundle includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <a class="btn btn-primary" data-bs-toggle="offcanvas" href="#offcanvasExample" role="button" aria-controls="offcanvasExample">
+        Link with href
+    </a>
+    <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample">
+        Button with data-bs-target
+    </button>
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasExampleLabel">Offcanvas</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div>
+                Some text as placeholder. In real life you can have the elements you have chosen. Like, text, images, lists, etc.
+            </div>
+            <div class="dropdown mt-3">
+                <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    Dropdown button
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">Action</a></li>
+                    <li><a class="dropdown-item" href="#">Another action</a></li>
+                    <li><a class="dropdown-item" href="#">Something else here</a></li>
+                </ul>
+                <button id="test" class="btn btn-secondary" type="button">submit</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('test').addEventListener('click', function () {
+            this.closest('.offcanvas').querySelector(".btn-close").click(); // Close the offcanvas
+            const timer = document.querySelector('task-timer.active');
+            if (timer) {
+                timer._stopTimer(); // Stop the timer if it's active
+            }
+        });
+    </script>
+
+
+Here's how to append HTML to the body using a web component in JavaScript:
+<my-component></my-component>
+<script>
+    class MyComponent extends HTMLElement {
+  constructor() {
+    super();
+    // Create a shadow DOM for encapsulation
+    this.attachShadow({ mode: 'open' });
+  }
+
+  connectedCallback() {
+    // HTML to be appended to the body
+    const htmlContent = `
+      <div style="background-color: lightblue; padding: 20px;">
+        <h1>Hello from Web Component!</h1>
+        <p>This content is appended to the body.</p>
+      </div>
+    `;
+
+    // Create a template element
+    const template = document.createElement('template');
+    template.innerHTML = htmlContent;
+
+    // Append the template content to the shadow DOM
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
+
+    // Append the component to the body
+    document.body.appendChild(this);
+  }
+}
+
+// Register the custom element
+customElements.define('my-component', MyComponent);
+</script>
+
+</body>
+
+</html>

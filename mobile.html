@@ -1,0 +1,341 @@
+
+<!DOCTYPE html>
+<html lang="en"  data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Number Input</title>
+    <!-- Inter font for better aesthetics -->
+    <!-- Tailwind CSS for utility classes and responsive design -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+
+    <div class="mobile-input-container">
+        <h1 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Enter Your Mobile Number</h1>
+        <mobile-number-input id="naaaaaaMobileNo" aria-label="Mobile No" aria-required="true"></mobile-number-input>
+        <mobile-number-input id="naaaaaaMobileNo1" aria-label="Mobile No 1"></mobile-number-input>
+        <p class="text-sm text-gray-500 mt-4 text-center">
+            This input uses a custom web component for international phone number formatting.
+        </p>
+    </div>
+    <div class="form-floating">
+        <input id="taaaaaaEScale" class="form-control" name="taaaaaaEScale" placeholder=' ' required="required" />
+        <label for="taaaaaaEScale">Selection Grade Scale Applicable</label>
+    </div>
+    <button type="submit" class="btn btn-primary mt-4" id="submitBtn">Submit</button>
+    <style>
+        .iti {
+            --iti-dropdown-bg: var(--bs-body-bg);
+            --iti-dropdown-border: var(--bs-border-color);
+        }
+    
+        .iti__dropdown-content {
+            z-index: 3 !important;
+        }
+    
+        .iti>.form-control,
+        .iti>.form-control-plaintext,
+        .iti>.form-select {
+            height: calc(3.5rem + calc(var(--bs-border-width) * 2));
+            min-height: calc(3.5rem + calc(var(--bs-border-width) 1px * 2));
+            line-height: 1.25;
+        }
+    
+        .iti+label {
+            padding-left: 3rem !important;
+            transform: scale(.85) translateY(-.9rem) translateX(.15rem);
+            color: rgba(var(--bs-body-color-rgb), .65);
+        }
+    </style>
+    <script type="module">
+/**
+ * Dynamically loads external CSS and JavaScript files and executes a callback function
+ * once all resources have been loaded.
+ *
+ * @param {string[]} cssUrls - An array of URLs for CSS files to load.
+ * @param {string[]} jsUrls - An array of URLs for JavaScript files to load.
+ * @param {Function} callback - The function to execute after all resources are loaded.
+ */
+function loadCssJs(cssUrls, jsUrls, callback) {
+    const head = document.head;
+    const body = document.body;
+
+    // Function to load a single CSS file
+    const loadCss = (url) => {
+        return new Promise((resolve, reject) => {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = url;
+            link.onload = () => {
+                console.log(`CSS loaded: ${url}`);
+                resolve();
+            };
+            link.onerror = () => {
+                console.error(`Failed to load CSS: ${url}`);
+                reject(new Error(`Failed to load CSS: ${url}`));
+            };
+            head.appendChild(link);
+        });
+    };
+
+    // Function to load a single JavaScript file
+    const loadJs = (url) => {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = url;
+            script.async = true; // Load asynchronously
+            script.onload = () => {
+                console.log(`JS loaded: ${url}`);
+                resolve();
+            };
+            script.onerror = () => {
+                console.error(`Failed to load JS: ${url}`);
+                reject(new Error(`Failed to load JS: ${url}`));
+            };
+            body.appendChild(script);
+        });
+    };
+
+    //showMessage('Loading resources...', 'info');
+
+    // Create promises for all CSS and JS files
+    const cssPromises = cssUrls.map(loadCss);
+    const jsPromises = jsUrls.map(loadJs);
+
+    // Wait for all promises to resolve
+    Promise.all([...cssPromises, ...jsPromises])
+        .then(() => {
+            console.log('All external resources loaded successfully!');
+            //showMessage('All resources loaded! Executing task...', 'success');
+            callback(); // Execute the task
+        })
+        .catch((error) => {
+            console.error('Error loading one or more resources:', error);
+            //showMessage(`Error loading resources: ${error.message}`, 'error');
+        });
+}
+
+        class MobileNumberInput extends HTMLElement {
+            constructor() {
+                super();
+                // No shadow DOM for this version
+                this.intlTelInputInstance = null;
+                this.isScriptsLoaded = false; // Track if scripts are already loaded
+                this.inputId = this.getAttribute('id') || 'mobile-number';
+                this.inputLabel = this.getAttribute('aria-label') || 'Mobile Number';
+                this.inputRequired = this.getAttribute('aria-required') === 'true' || false;
+            }
+
+            connectedCallback() {
+                this.render();
+                this.loadAndInitializeExternalScripts();
+            }
+
+            render() {
+                const inputLabel = this.getAttribute('aria-label') || 'Mobile Number';
+
+                // Render directly into the light DOM
+                this.innerHTML = `
+                    <div class="form-floating relative">
+                        <input type="tel" id="${this.inputId}" class="form-control">
+                        <label for="${this.inputId}">${inputLabel}</label>
+                        <div class="spinner"></div>
+                        <input type="tel" name="${this.inputId}" style="display:none;">
+                    </div>
+                `;
+            }
+
+            async loadAndInitializeExternalScripts() {
+                const spinner = this.querySelector('.spinner');
+                const inputElement = this.querySelector('#'+ this.inputId);
+                inputElement.style.display = 'none'; // Hide input until initialized
+                     //
+                if (!this.isScriptsLoaded) {
+                    loadCssJs(['https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.3.2/build/css/intlTelInput.min.css']
+                        ,['https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.3.2/build/js/intlTelInputWithUtils.min.js' ]
+                        , () => { 
+                            this.isScriptsLoaded = true; // Mark scripts as loaded
+                            if (typeof window.intlTelInput === 'undefined') {
+                                console.error("intlTelInput library is not available after loading.");
+                                spinner.textContent = 'Error: intlTelInput not found.';
+                                spinner.style.color = 'red';
+                                return;
+                            }
+
+                            try {
+                                spinner.style.display = 'none'; // Hide spinner
+                                inputElement.style.display = 'block'; // Show input
+
+                                // Initialize intl-tel-input
+                                this.intlTelInputInstance = window.intlTelInput(inputElement, {
+                                    initialCountry: "auto",
+                                    geoIpLookup: function(callback) {
+                                        fetch("https://ipapi.co/json/")
+                                            .then(res => res.json())
+                                            .then(data => callback(data.country_code))
+                                            .catch(() => callback("in")); // Default to US on error
+                                    },
+                                    strictMode: true,
+                                    formatAsYouType: true,
+                                    formatOnDisplay: true,
+                                    placeholderNumberType: "MOBILE",
+                                    validationNumberTypes: ["MOBILE"],
+                                    separateDialCode: true
+                                    //loadUtils: () => import("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.3.2/build/js/utils.min.js") // for formatting/placeholders etc
+                                });
+
+                                // Add event listener to format the number as the user types
+                                inputElement.addEventListener('input', () => {
+                                    const inputField = document.getElementsByName(`${this.inputId}`)[0];
+                                    // Check if intlTelInputUtils is available before using it
+                                    if (this.intlTelInputInstance.isValidNumber() && intlTelInput.utils) {
+                                        inputField.value = this.intlTelInputInstance.getNumber(intlTelInput.utils.numberFormat.E164);
+                                        //return this.intlTelInputInstance.getNumber(intlTelInput.utils.numberFormat.E164);
+                                        const formattedNumber = this.intlTelInputInstance.getNumber(intlTelInput.utils.numberFormat.E164);
+                                        console.log("Formatted Number:", formattedNumber);
+                                        inputElement.setCustomValidity('');
+                                        // You can emit a custom event here if you want to pass the formatted number out
+                                        this.dispatchEvent(new CustomEvent('number-formatted', { detail: formattedNumber }));
+                                    } else {
+                                        inputField.value = "";
+                                        if(this.inputRequired) {
+                                            inputElement.setCustomValidity(`${this.inputLabel} needs to be filled out correctly.`);
+                                            inputElement.reportValidity();
+                                        }
+                                    }
+                                });
+
+                            } catch (error) {
+                                console.error("Failed to initialize intl-tel-input:", error.message || error);
+                                spinner.textContent = `Error initializing: ${error.message || 'Unknown error'}`;
+                                spinner.style.color = 'red';
+                            }
+                         });
+                }
+            }
+
+            // Public method to get the formatted number
+            getFormattedNumber() {
+                if (this.intlTelInputInstance && this.intlTelInputInstance.isValidNumber() && intlTelInput.utils) {
+                    return this.intlTelInputInstance.getNumber(intlTelInput.utils.numberFormat.E164);
+                    //return this.intlTelInputInstance.getNumber(intlTelInput.utils.numberFormat.INTERNATIONAL);
+                }
+                return null;
+            }
+            getNumberwCode() {
+                return this.intlTelInputInstance.getNumber(intlTelInput.utils.numberFormat.E164);
+                
+            }
+            // Public method to get the raw input value
+            getRawNumber() {
+                const inputElement = this.querySelector('#' + this.inputId);
+                return inputElement ? inputElement.value : '';
+            }
+        }
+
+        customElements.define('mobile-number-input', MobileNumberInput);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+</body>
+</html>
+<!-- // ---
+/*
+                // Only load scripts if they haven't been loaded by this component instance yet
+                if (!this.isScriptsLoaded) {
+
+                    try {
+
+                        // Load intl-tel-input CSS
+                        await this.loadCSS('https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.3.2/build/css/intlTelInput.min.css');
+
+                        // Load intl-tel-input JS
+                        await this.loadScript('https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.3.2/build/js/intlTelInput.min.js');
+                        this.isScriptsLoaded = true; // Mark scripts as loaded
+                    } catch (error) {
+                        console.error("Failed to load external scripts:", error.message || error);
+                        spinner.textContent = `Error loading scripts: ${error.message || 'Unknown error'}`;
+                        spinner.style.color = 'red';
+                        return; // Stop execution if scripts fail to load
+                    }
+                }
+
+                // Give a small delay to ensure scripts are fully parsed and available
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                if (typeof window.intlTelInput === 'undefined') {
+                    console.error("intlTelInput library is not available after loading.");
+                    spinner.textContent = 'Error: intlTelInput not found.';
+                    spinner.style.color = 'red';
+                    return;
+                }
+
+                try {
+                    spinner.style.display = 'none'; // Hide spinner
+                    inputElement.style.display = 'block'; // Show input
+
+                    // Initialize intl-tel-input
+                    this.intlTelInputInstance = window.intlTelInput(inputElement, {
+                        initialCountry: "auto",
+                        geoIpLookup: function(callback) {
+                            fetch("https://ipapi.co/json/")
+                                .then(res => res.json())
+                                .then(data => callback(data.country_code))
+                                .catch(() => callback("us")); // Default to US on error
+                        },
+                        strictMode: true,
+                        formatAsYouType: true,
+                        formatOnDisplay: true,
+                        placeholderNumberType: "MOBILE",
+                        validationNumberTypes: ["MOBILE"],
+                        separateDialCode: true,
+                        loadUtils: () => import("https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/25.3.2/build/js/utils.min.js") // for formatting/placeholders etc
+                    });
+
+                    // Add event listener to format the number as the user types
+                    inputElement.addEventListener('input', () => {
+                        // Check if intlTelInputUtils is available before using it
+                        if (this.intlTelInputInstance.isValidNumber() && intlTelInput.utils) {
+                            const formattedNumber = this.intlTelInputInstance.getNumber(intlTelInput.utils.numberFormat.INTERNATIONAL);
+                            console.log("Formatted Number:", formattedNumber);
+                            // You can emit a custom event here if you want to pass the formatted number out
+                            this.dispatchEvent(new CustomEvent('number-formatted', { detail: formattedNumber }));
+                        }
+                    });
+
+                } catch (error) {
+                    console.error("Failed to initialize intl-tel-input:", error.message || error);
+                    spinner.textContent = `Error initializing: ${error.message || 'Unknown error'}`;
+                    spinner.style.color = 'red';
+                }
+            loadScript(src) {
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.onload = resolve;
+                    script.onerror = () => {
+                        console.error(`Failed to load script: ${src}`);
+                        reject(new Error(`Failed to load script: ${src}`));
+                    };
+                    document.body.appendChild(script); // Append to body for scripts
+                });
+            }
+
+            loadCSS(href) {
+                return new Promise((resolve, reject) => {
+                    const link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = href;
+                    link.onload = resolve;
+                    link.onerror = () => {
+                        console.error(`Failed to load CSS: ${href}`);
+                        reject(new Error(`Failed to load CSS: ${href}`));
+                    };
+                    document.head.appendChild(link); // Append to head for CSS
+                });
+            }
+
+
+                */ -->

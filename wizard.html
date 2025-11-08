@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Step Wizard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .main-container {
+            text-align: center;
+            max-width: 900px;
+            width: 100%;
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Styles for the multi-step-wizard web component itself (within shadow DOM) */
+        multi-step-wizard {
+            display: block;
+            width: 100%;
+            max-width: 900px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <h1 class="text-center mb-4 text-dark">Multi-Step Wizard Demo</h1>
+        <p class="text-secondary fs-5">
+            This demo showcases a custom web component that creates a multi-step wizard.
+            Navigate through steps using the links on the left or the buttons below.
+        </p>
+        <p class="text-secondary fs-5">
+            **Note:** The navigation links now use a custom renderer function to display.
+        </p>
+    </div>
+
+    <!-- The custom web component for the wizard -->
+    <multi-step-wizard id="myWizard"></multi-step-wizard>
+
+    <!-- Bootstrap JS (Popper.js and Bootstrap bundle) -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
+
+    <script>
+        class MultiStepWizard extends HTMLElement {
+            constructor() {
+                super();
+                this.attachShadow({ mode: 'open' }); // Use Shadow DOM for encapsulation
+
+                this.stepsData = [
+                    { id: 'step1', title: 'Introduction', content: 'Welcome to the wizard! This is the first step of our journey. Click Next to continue.' },
+                    { id: 'step2', title: 'Basic Information', content: 'Please provide some basic information here. This could be a form section.' },
+                    { id: 'step3', title: 'Preferences', content: 'Set your preferences in this step. Many options can go here.' },
+                    { id: 'step4', title: 'Review', content: 'Review your selections before finalizing. Ensure all details are correct.' },
+                    { id: 'step5', title: 'Confirmation', content: 'You have reached the final step! Click Finish to complete the process.' }
+                ];
+                this.currentStepIndex = 0; // Start at the first step
+                this.linkRenderer = null; // New property to store the custom link rendering function
+
+                this.shadowRoot.innerHTML = `
+                    <style>
+                        :host {
+                            display: block;
+                            background-color: white;
+                            border-radius: 12px;
+                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                            padding: 20px;
+                        }
+
+                        .wizard-container {
+                            display: flex;
+                            flex-direction: column;
+                            min-height: 400px; /* Ensure sufficient height */
+                        }
+
+                        @media (min-width: 768px) {
+                            .wizard-container {
+                                flex-direction: row;
+                            }
+                        }
+
+                        .wizard-nav {
+                            flex-shrink: 0;
+                            padding: 1rem;
+                            background-color: #f8f9fa; /* Bootstrap light background */
+                            border-bottom: 1px solid #e9ecef;
+                            border-radius: 8px 8px 0 0;
+                        }
+                        @media (min-width: 768px) {
+                            .wizard-nav {
+                                border-bottom: none;
+                                border-right: 1px solid #e9ecef;
+                                border-radius: 8px 0 0 8px;
+                                width: 200px; /* Fixed width for nav on larger screens */
+                            }
+                        }
+
+                        .wizard-nav .nav-link {
+                            padding: 0.75rem 1rem;
+                            color: #007bff; /* Bootstrap primary color */
+                            text-align: left;
+                            transition: background-color 0.2s ease, color 0.2s ease;
+                            border-radius: 0.25rem;
+                        }
+                        .wizard-nav .nav-link:hover {
+                            background-color: #e2e6ea; /* Light grey on hover */
+                            color: #0056b3;
+                        }
+                        .wizard-nav .nav-link.active {
+                            background-color: #007bff;
+                            color: white;
+                            font-weight: bold;
+                        }
+
+                        .wizard-content {
+                            flex-grow: 1;
+                            padding: 1.5rem;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-between; /* Push buttons to bottom */
+                        }
+
+                        .wizard-step {
+                            display: none; /* Hidden by default */
+                            animation: fadeIn 0.5s ease-out; /* Fade in animation */
+                        }
+                        .wizard-step.active {
+                            display: block;
+                        }
+
+                        .wizard-buttons {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-top: auto; /* Push buttons to the bottom of the content area */
+                            padding-top: 1rem;
+                            border-top: 1px solid #e9ecef;
+                        }
+
+                        .btn {
+                            padding: 0.75rem 1.25rem;
+                            border-radius: 0.5rem;
+                            font-size: 1rem;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                        }
+                        .btn-secondary {
+                            background-color: #6c757d;
+                            color: white;
+                            border: none;
+                        }
+                        .btn-secondary:hover {
+                            background-color: #5a6268;
+                        }
+                        .btn-primary {
+                            background-color: #007bff;
+                            color: white;
+                            border: none;
+                        }
+                        .btn-primary:hover {
+                            background-color: #0056b3;
+                        }
+                        .btn-success {
+                            background-color: #28a745;
+                            color: white;
+                            border: none;
+                        }
+                        .btn-success:hover {
+                            background-color: #218838;
+                        }
+
+                        .d-none {
+                            display: none !important;
+                        }
+
+                        /* Animation for steps */
+                        @keyframes fadeIn {
+                            from { opacity: 0; transform: translateY(10px); }
+                            to { opacity: 1; transform: translateY(0); }
+                        }
+                    </style>
+
+                    <div class="wizard-container">
+                        <div class="wizard-nav">
+                            <ul class="nav flex-column" id="wizardNavLinks">
+                                <!-- Navigation links will be generated here -->
+                            </ul>
+                        </div>
+                        <div class="wizard-content">
+                            <div id="wizardSteps">
+                                <!-- Step content divs will be generated here -->
+                            </div>
+                            <div class="wizard-buttons">
+                                <button id="prevBtn" class="btn btn-secondary">Previous</button>
+                                <button id="nextBtn" class="btn btn-primary">Next</button>
+                                <button id="finishBtn" class="btn btn-success d-none">Finish</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Get references to shadow DOM elements
+                this.wizardNavLinks = this.shadowRoot.getElementById('wizardNavLinks');
+                this.wizardSteps = this.shadowRoot.getElementById('wizardSteps');
+                this.prevBtn = this.shadowRoot.getElementById('prevBtn');
+                this.nextBtn = this.shadowRoot.getElementById('nextBtn');
+                this.finishBtn = this.shadowRoot.getElementById('finishBtn');
+
+                // Initialize the wizard
+                this.renderNavLinks();
+                this.renderStepContent();
+                this.attachEventListeners();
+                this.updateUI(); // Set initial state
+            }
+
+            /**
+             * Renders the navigation links on the left side of the wizard.
+             */
+            renderNavLinks() {
+                this.wizardNavLinks.innerHTML = ''; // Clear existing links
+                this.stepsData.forEach((step, index) => {
+                    debugger;
+                    const li = document.createElement('li');
+                    li.classList.add('nav-item');
+                    const a = document.createElement('a');
+                    a.classList.add('nav-link');
+                    a.href = '#'; // Prevent default navigation
+                    a.dataset.stepIndex = index; // Store the step index
+
+                    // Use the custom linkRenderer if provided, otherwise fall back to default
+                    if (typeof this.linkRenderer === 'function') {
+                        a.textContent = this.linkRenderer(step, index);
+                    } else {
+                        a.textContent = `${index + 1}. ${step.title}`;
+                    }
+
+                    li.appendChild(a);
+                    this.wizardNavLinks.appendChild(li);
+                });
+            }
+
+            /**
+             * Renders the content divs for each step on the right side.
+             */
+            renderStepContent() {
+                this.wizardSteps.innerHTML = ''; // Clear existing content
+                this.stepsData.forEach((step, index) => {
+                    const div = document.createElement('div');
+                    div.classList.add('wizard-step');
+                    div.setAttribute('role', 'tabpanel'); // ARIA role for accessibility
+                    div.setAttribute('aria-labelledby', `step-link-${step.id}`); // Link to nav item
+                    div.setAttribute('id', `step-content-${step.id}`);
+
+                    const h2 = document.createElement('h2');
+                    h2.classList.add('mb-3', 'text-primary');
+                    h2.textContent = step.title;
+
+                    const p = document.createElement('p');
+                    p.classList.add('text-secondary', 'fs-5');
+                    p.textContent = step.content;
+
+                    div.appendChild(h2);
+                    div.appendChild(p);
+                    this.wizardSteps.appendChild(div);
+                });
+            }
+
+            /**
+             * Attaches event listeners to navigation links and buttons.
+             */
+            attachEventListeners() {
+                // Event listener for navigation links
+                this.wizardNavLinks.addEventListener('click', (event) => {
+                    event.preventDefault(); // Prevent page refresh
+                    const targetLink = event.target.closest('.nav-link');
+                    if (targetLink) {
+                        const stepIndex = parseInt(targetLink.dataset.stepIndex, 10);
+                        this.showStep(stepIndex);
+                    }
+                });
+
+                // Event listeners for Previous, Next, and Finish buttons
+                this.prevBtn.addEventListener('click', () => this.previousStep());
+                this.nextBtn.addEventListener('click', () => this.nextStep());
+                this.finishBtn.addEventListener('click', () => this.finishWizard());
+            }
+
+            /**
+             * Displays a specific step and updates the UI.
+             * @param {number} index - The index of the step to show.
+             */
+            showStep(index) {
+                if (index >= 0 && index < this.stepsData.length) {
+                    this.currentStepIndex = index;
+                    this.updateUI();
+                }
+            }
+
+            /**
+             * Moves the wizard to the next step.
+             */
+            nextStep() {
+                if (this.currentStepIndex < this.stepsData.length - 1) {
+                    this.currentStepIndex++;
+                    this.updateUI();
+                }
+            }
+
+            /**
+             * Moves the wizard to the previous step.
+             */
+            previousStep() {
+                if (this.currentStepIndex > 0) {
+                    this.currentStepIndex--;
+                    this.updateUI();
+                }
+            }
+
+            /**
+             * Updates the UI based on the current step:
+             * - Activates the current navigation link.
+             * - Shows the current step content.
+             * - Manages button visibility (Previous, Next, Finish).
+             */
+            updateUI() {
+                // Update navigation links
+                this.wizardNavLinks.querySelectorAll('.nav-link').forEach((link, index) => {
+                    if (index === this.currentStepIndex) {
+                        link.classList.add('active');
+                        link.setAttribute('aria-current', 'step');
+                    } else {
+                        link.classList.remove('active');
+                        link.removeAttribute('aria-current');
+                    }
+                });
+
+                // Update step content visibility
+                this.wizardSteps.querySelectorAll('.wizard-step').forEach((stepDiv, index) => {
+                    if (index === this.currentStepIndex) {
+                        stepDiv.classList.add('active');
+                    } else {
+                        stepDiv.classList.remove('active');
+                    }
+                });
+
+                // Manage button visibility
+                this.prevBtn.classList.toggle('d-none', this.currentStepIndex === 0);
+                this.nextBtn.classList.toggle('d-none', this.currentStepIndex === this.stepsData.length - 1);
+                this.finishBtn.classList.toggle('d-none', this.currentStepIndex !== this.stepsData.length - 1);
+            }
+
+            /**
+             * Handles the "Finish" action when the wizard is completed.
+             */
+            finishWizard() {
+                // In a real application, you would send data to a server or perform final actions here.
+                alert('Wizard Finished! Data can now be processed.');
+                console.log('Wizard finished. Current step data:', this.stepsData[this.currentStepIndex]);
+                // Optionally reset the wizard or redirect
+                this.currentStepIndex = 0; // Reset to first step for demo purposes
+                this.updateUI();
+            }
+        }
+
+        // Define the custom element
+        customElements.define('multi-step-wizard', MultiStepWizard);
+
+        // --- How to use the custom link renderer ---
+        // Get a reference to your wizard component after it's defined
+        const myWizard = document.getElementById('myWizard');
+
+        // Define your custom link rendering function
+        if (myWizard) {
+            myWizard.linkRenderer = function(stepData, index) {
+                // This function receives the step data and its index
+                // It should return the string you want to display for the link
+                return `Step ${index + 1}: ${stepData.title}`;
+            };
+            // Re-render the navigation links with the new renderer
+            // This is important if the component has already rendered its initial links
+            myWizard.renderNavLinks();
+            myWizard.updateUI(); // Ensure active state is correctly set after re-rendering
+        }
+    </script>
+
+</body>
+</html>

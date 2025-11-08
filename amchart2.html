@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AmCharts Web Component</title>
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e9ecef; /* Light gray background from Bootstrap */
+            display: flex;
+            flex-direction: column; /* Allow multiple charts to stack */
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Ensure enough height for scrolling to see lazy loaded charts */
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .chart-container-wrapper {
+            background-color: #ffffff;
+            border-radius: 0.75rem; /* Bootstrap-like rounded corners */
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); /* Bootstrap-like shadow */
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 900px; /* Max width for better presentation */
+            box-sizing: border-box;
+            margin-bottom: 20px; /* Space between chart wrappers */
+        }
+        /* When using 'is', the div itself becomes the component */
+        div[is="am-chart-component"] {
+            display: block; /* Ensure it behaves like a block element */
+            width: 100%;
+            height: 400px; /* Fixed height for the chart */
+            position: relative; /* For loading indicator positioning */
+            /* Add some margin top to demonstrate lazy loading more clearly */
+            margin-top: 50px;
+        }
+        /* Adjust margin for the first chart to be visible initially */
+        #columnChart {
+            margin-top: 0;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            color: #6c757d;
+            border-radius: 0.75rem;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chart-container-wrapper">
+        <h1 class="text-center mb-4 text-primary">Custom AmCharts Web Component Examples</h1>
+
+        <h2 class="text-center mb-3 text-secondary">Column Chart (Config from JS)</h2>
+        <div is="am-chart-component" id="columnChart"></div>
+    </div>
+
+    <div class="chart-container-wrapper">
+        <h2 class="text-center mb-3 text-secondary">Pie Chart (Config from JS)</h2>
+        <div is="am-chart-component" id="pieChart"></div>
+    </div>
+
+    <div class="chart-container-wrapper">
+        <h2 class="text-center mb-3 text-secondary">Line Chart with Bullets (Config from JS)</h2>
+        <div is="am-chart-component" id="bulletChart"></div>
+    </div>
+    
+    <div class="chart-container-wrapper">
+        <h2 class="text-center mb-3 text-secondary">Clustered Column Chart (Config from JS)</h2>
+        <div is="am-chart-component" id="clusteredColumnChart"></div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script>
+        // Define the AmChartWebComponent custom element
+        class AmChartWebComponent extends HTMLDivElement {
+            static get observedAttributes() {
+                // Observe the 'config' attribute for changes
+                return ['config'];
+            }
+
+            constructor() {
+                super();
+                this.chartRoot = null; // To store the AmCharts root instance
+                this.chartContainer = this; // When using 'is', the element itself is the container
+                this.amChartsLoaded = false; // Flag to track if AmCharts libraries are loaded
+                this.loadingPromise = null; // To store the promise of loading libraries
+                this.loadingOverlay = null; // To store the loading overlay element
+                this.chartRendered = false; // New flag to track if the chart has been rendered
+                this.intersectionObserver = null; // To store the IntersectionObserver instance
+            }
+
+            connectedCallback() {
+                // Create and append a loading overlay
+                this.loadingOverlay = document.createElement('div');
+                this.loadingOverlay.className = 'loading-overlay';
+                this.loadingOverlay.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div> <span class="ms-2">Loading chart...</span>';
+                this.appendChild(this.loadingOverlay);
+
+                // Set up IntersectionObserver for lazy loading
+                this.intersectionObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting && !this.chartRendered) {
+                            // If the element is visible and chart not yet rendered, load and render
+                            this.loadAmChartsLibraries().then(() => {
+                                this.amChartsLoaded = true;
+                                this.loadingOverlay.style.display = 'none'; // Hide loading overlay
+                                this.renderChart();
+                                this.chartRendered = true; // Mark as rendered
+                            }).catch(error => {
+                                console.error('Failed to load AmCharts libraries:', error);
+                                this.loadingOverlay.innerHTML = '<span class="text-danger">Error loading chart.</span>';
+                            });
+                            observer.disconnect(); // Stop observing once loaded
+                        }
+                    });
+                }, {
+                    root: null, // Use the viewport as the root
+                    rootMargin: '0px',
+                    threshold: 0.1 // Trigger when 10% of the element is visible
+                });
+
+                this.intersectionObserver.observe(this); // Start observing this element
+            }
+
+            disconnectedCallback() {
+                // Disconnect observer when the element is removed from the DOM
+                if (this.intersectionObserver) {
+                    this.intersectionObserver.disconnect();
+                }
+                // Dispose of any existing chart root to prevent memory leaks.
+                if (this.chartRoot) {
+                    this.chartRoot.dispose();
+                    this.chartRoot = null;
+                }
+            }
+
+            attributeChangedCallback(name, oldValue, newValue) {
+                // This method is called when an observed attribute changes.
+                if (name === 'config' && oldValue !== newValue) {
+                    // If the config attribute changes, and chart is already rendered, re-render
+                    if (this.chartRendered) {
+                        this.renderChart();
+                    } else if (this.loadingPromise) {
+                        // If config changes before rendering, but loading is in progress,
+                        // ensure it renders once libraries are ready (and it becomes visible)
+                        this.loadingPromise.then(() => {
+                            // Only render if it's visible, otherwise wait for intersection observer
+                            if (this.intersectionObserver && this.intersectionObserver.root) { // Check if observer is active
+                                const entry = this.intersectionObserver.takeRecords().find(rec => rec.target === this);
+                                if (entry && entry.isIntersecting) {
+                                    this.renderChart();
+                                }
+                            }
+                        });
+                    }
+                    // If not yet visible and no loading in progress, the IntersectionObserver will handle it.
+                }
+            }
+
+            /**
+             * Helper function to dynamically load a script.
+             * @param {string} url - The URL of the script to load.
+             * @returns {Promise<void>} A promise that resolves when the script is loaded.
+             */
+            loadScript(url) {
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = url;
+                    script.onload = () => resolve();
+                    script.onerror = () => reject(new Error(`Failed to load script: ${url}`));
+                    document.head.appendChild(script);
+                });
+            }
+
+            /**
+             * Loads all necessary AmCharts libraries dynamically.
+             * @returns {Promise<void>} A promise that resolves when all libraries are loaded.
+             */
+            loadAmChartsLibraries() {
+                if (this.loadingPromise) {
+                    return this.loadingPromise; // Return existing promise if already loading
+                }
+
+                const libUrls = [
+                    "https://cdn.amcharts.com/lib/5/index.js",
+                    "https://cdn.amcharts.com/lib/5/xy.js",
+                    "https://cdn.amcharts.com/lib/5/percent.js", // Added for Pie Charts
+                    "https://cdn.amcharts.com/lib/5/themes/Animated.js"
+                ];
+
+                this.loadingPromise = Promise.all(libUrls.map(url => this.loadScript(url)));
+                return this.loadingPromise;
+            }
+
+            renderChart() {
+                // Only proceed if AmCharts libraries are confirmed loaded
+                if (!this.amChartsLoaded) {
+                    console.warn('AmCharts libraries not loaded yet. Chart will render once ready.');
+                    return;
+                }
+
+                // Dispose of any existing chart root before creating a new one
+                if (this.chartRoot) {
+                    this.chartRoot.dispose();
+                }
+
+                try {
+                    // Parse the config attribute as a JSON object
+                    const config = JSON.parse(this.getAttribute('config') || '{}');
+
+                    // Create root element
+                    this.chartRoot = am5.Root.new(this.chartContainer);
+
+                    // Set themes (optional, but good for default aesthetics)
+                    this.chartRoot.setThemes([
+                        am5themes_Animated.new(this.chartRoot)
+                    ]);
+
+                    let chart;
+                    switch (config.type) {
+                        case 'XYChart':
+                            chart = this.chartRoot.container.children.push(am5xy.XYChart.new(this.chartRoot, {
+                                // panX: true,
+                                // panY: true,
+                                // wheelX: "panX",
+                                // wheelY: "zoomX",
+                                // pinchZoomX: true
+                                panX: false,
+                                panY: false,
+                                wheelX: "panX",
+                                wheelY: "zoomX",
+                                pinchZoomX: this.chartRoot.verticalLayout
+                            }));
+                            break;
+                        case 'PieChart':
+                            chart = this.chartRoot.container.children.push(am5percent.PieChart.new(this.chartRoot, {
+                                layout: this.chartRoot.verticalLayout
+                            }));
+                            break;
+                        default:
+                            console.error('Unsupported chart type:', config.type);
+                            return;
+                    }
+
+                    // Set chart data (common for most charts)
+                    // if (config.data) {
+                    //     chart.data.setAll(config.data);
+                    // }
+
+                    // Handle XYChart specific configurations (axes, series)
+                    if (config.type === 'XYChart') {
+                        // Create X-axes
+                        if (config.xAxes && config.xAxes.length > 0) {
+                            config.xAxes.forEach(axisConfig => {
+                                let xAxis;
+                                if (axisConfig.type === 'CategoryAxis') {
+                                    xAxis = chart.xAxes.push(am5xy.CategoryAxis.new(this.chartRoot, {
+                                        categoryField: axisConfig.categoryField,
+                                        renderer: am5xy.AxisRendererX.new(this.chartRoot, axisConfig.renderer || {})
+                                    }));
+                                    if (axisConfig.data) {
+                                        xAxis.data.setAll(axisConfig.data);
+                                    } else if (config.data) {
+                                        const categories = config.data.map(d => d[axisConfig.categoryField]);
+                                        xAxis.data.setAll(categories.map(c => ({ category: c })));
+                                    }
+                                } else if (axisConfig.type === 'ValueAxis') {
+                                    xAxis = chart.xAxes.push(am5xy.ValueAxis.new(this.chartRoot, {
+                                        renderer: am5xy.AxisRendererX.new(this.chartRoot, axisConfig.renderer || {})
+                                    }));
+                                }
+                                if (xAxis && axisConfig.tooltipText) {
+                                    xAxis.set("tooltipText", axisConfig.tooltipText);
+                                }
+                                if (xAxis && axisConfig.labels) { /* Add custom label configs here */ }
+                            });
+                        }
+
+                        // Create Y-axes
+                        if (config.yAxes && config.yAxes.length > 0) {
+                            config.yAxes.forEach(axisConfig => {
+                                let yAxis;
+                                if (axisConfig.type === 'ValueAxis') {
+                                    yAxis = chart.yAxes.push(am5xy.ValueAxis.new(this.chartRoot, {
+                                        renderer: am5xy.AxisRendererY.new(this.chartRoot, axisConfig.renderer || {})
+                                    }));
+                                } else if (axisConfig.type === 'CategoryAxis') {
+                                    yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(this.chartRoot, {
+                                        categoryField: axisConfig.categoryField,
+                                        renderer: am5xy.AxisRendererY.new(this.chartRoot, axisConfig.renderer || {})
+                                    }));
+                                    if (axisConfig.data) {
+                                        yAxis.data.setAll(axisConfig.data);
+                                    }
+                                }
+                                if (yAxis && axisConfig.tooltipText) {
+                                    yAxis.set("tooltipText", axisConfig.tooltipText);
+                                }
+                            });
+                        }
+
+                        // Create XYChart series (ColumnSeries, LineSeries)
+                        if (config.series && config.series.length > 0) {
+                            config.series.forEach(seriesConfig => {
+                                let series;
+                                if (seriesConfig.type === 'ColumnSeries') {
+                                    series = chart.series.push(am5xy.ColumnSeries.new(this.chartRoot, {
+                                        name: seriesConfig.name,
+                                        xAxis: chart.xAxes.getIndex(0),
+                                        yAxis: chart.yAxes.getIndex(0),
+                                        valueYField: seriesConfig.valueField,
+                                        categoryXField: seriesConfig.categoryField,
+                                        tooltip: am5.Tooltip.new(this.chartRoot, {
+                                            labelText: "{name}: {valueY}"
+                                        })
+                                    }));
+                                    // Add custom settings to the column template from the config
+                                    if (seriesConfig.columns && seriesConfig.columns.template) {
+                                        for (const prop in seriesConfig.columns.template) {
+                                            if (prop === 'fill' && typeof seriesConfig.columns.template[prop] === 'string' && seriesConfig.columns.template[prop].startsWith('am5.color(')) {
+                                                series.columns.template.set(prop, eval(seriesConfig.columns.template[prop]));
+                                            } else {
+                                                series.columns.template.set(prop, seriesConfig.columns.template[prop]);
+                                            }
+                                        }
+                                    }
+                                } else if (seriesConfig.type === 'LineSeries') {
+                                    series = chart.series.push(am5xy.LineSeries.new(this.chartRoot, {
+                                        name: seriesConfig.name,
+                                        xAxis: chart.xAxes.getIndex(0),
+                                        yAxis: chart.yAxes.getIndex(0),
+                                        valueYField: seriesConfig.valueField,
+                                        categoryXField: seriesConfig.categoryField,
+                                        tooltip: am5.Tooltip.new(this.chartRoot, {
+                                            labelText: "{name}: {valueY}"
+                                        })
+                                    }));
+                                    series.strokes.template.setAll({
+                                        strokeWidth: 2
+                                    });
+                                    // Add bullets
+                                    if (seriesConfig.bullets) {
+                                        series.bullets.push(function() {
+                                            return am5.Bullet.new(this.chartRoot, {
+                                                sprite: am5.Circle.new(this.chartRoot, {
+                                                    radius: 5,
+                                                    fill: series.get("fill")
+                                                })
+                                            });
+                                        });
+                                    }
+                                }
+                                if (series) {
+                                    series.data.setAll(config.data);
+                                }
+                            });
+                        }
+                        // Add cursor and scrollbars for XYChart
+                        chart.set("cursor", am5xy.XYCursor.new(this.chartRoot, {}));
+                        debugger;
+                        chart.set("scrollbarX", am5.Scrollbar.new(this.chartRoot, {
+                            orientation: am5.Orientation.HORIZONTAL
+                        }));
+                        // Add legend if configured
+                        if (config.legend) {
+                            let legend = chart.children.push(am5.Legend.new(this.chartRoot, {
+                                centerX: am5.p50,
+                                x: am5.p50
+                            }));
+                            legend.data.setAll(chart.series.values);
+                        }
+                        // if (config.legend) {
+                        //     let legend = chart.children.push(am5.Legend.new(this.chartRoot, {
+                        //         centerX: am5.percent(50),
+                        //         x: am5.percent(50),
+                        //         layout: am5.horizontalLayout
+                        //     }));
+                        //     legend.data.setAll(chart.series.values);
+                        // }
+
+                    } else if (config.type === 'PieChart') {
+                        // Create PieChart series
+                        if (config.series && config.series.length > 0) {
+                            config.series.forEach(seriesConfig => {
+                                if (seriesConfig.type === 'PieSeries') {
+                                    let series = chart.series.push(am5percent.PieSeries.new(this.chartRoot, {
+                                        valueField: seriesConfig.valueField,
+                                        categoryField: seriesConfig.categoryField
+                                    }));
+                                    series.data.setAll(config.data);
+
+                                    // Add labels and ticks
+                                    series.labels.template.setAll({
+                                        textType: "circular",
+                                        radius: 10
+                                    });
+                                    series.ticks.template.setAll({
+                                        forceHidden: true
+                                    });
+
+                                    // Add tooltips
+                                    series.slices.template.set("tooltipText", "{category}: {valuePercentTotal.formatNumber('#.#')}% ({value})");
+                                }
+                            });
+                        }
+                        // Add a legend
+                        if (config.legend) {
+                            let legend = chart.children.push(am5.Legend.new(this.chartRoot, {
+                                centerX: am5.p50,
+                                x: am5.p50
+                            }));
+                            legend.data.setAll(chart.series.values[0].dataItems);
+                        }
+                        // if (config.legend) {
+                        //     let legend = chart.children.push(am5.Legend.new(this.chartRoot, {
+                        //         centerX: am5.percent(50),
+                        //         x: am5.percent(50),
+                        //         layout: am5.horizontalLayout
+                        //     }));
+                        //     legend.data.setAll(chart.series.values[0].dataItems);
+                        // }
+                    }
+
+                    // Make stuff animate on load
+                    chart.appear(1000, 100);
+
+                } catch (error) {
+                    console.error('Error rendering AmChart:', error);
+                }
+            }
+        }
+
+        // Define the custom element, extending 'div'
+        customElements.define('am-chart-component', AmChartWebComponent, { extends: 'div' });
+
+        // --- Chart Configurations defined in JavaScript ---
+
+        const columnChartConfig = {
+            "type": "XYChart",
+            "data": [
+                {"category": "Jan", "value": 2025},
+                {"category": "Feb", "value": 1882},
+                {"category": "Mar", "value": 1809},
+                {"category": "Apr", "value": 1322},
+                {"category": "May", "value": 1122},
+                {"category": "Jun", "value": 1114},
+                {"category": "Jul", "value": 984},
+                {"category": "Aug", "value": 711},
+                {"category": "Sep", "value": 665},
+                {"category": "Oct", "value": 580},
+                {"category": "Nov", "value": 443},
+                {"category": "Dec", "value": 398}
+            ],
+            "series": [
+                {
+                    "type": "ColumnSeries",
+                    "categoryField": "category",
+                    "valueField": "value",
+                    "name": "Sales",
+                    "columns": {
+                        "template": {
+                            "fill": "am5.color(0x0d6efd)", // Bootstrap primary blue
+                            "strokeOpacity": 0,
+                            "cornerRadiusTL": 5,
+                            "cornerRadiusTR": 5
+                        }
+                    }
+                }
+            ],
+            "xAxes": [
+                {
+                    "type": "CategoryAxis",
+                    "renderer": {
+                        "grid": {
+                            "template": {
+                                "location": 0
+                            }
+                        }
+                    },
+                    "categoryField": "category"
+                }
+            ],
+            "yAxes": [
+                {
+                    "type": "ValueAxis",
+                    "renderer": {
+                        "grid": {
+                            "template": {
+                                "location": 0
+                            }
+                        }
+                    }
+                }
+            ]
+        };
+
+        const pieChartConfig = {
+            "type": "PieChart",
+            "data": [
+                {"country": "USA", "value": 4252},
+                {"country": "Germany", "value": 1882},
+                {"country": "UK", "value": 1809},
+                {"country": "France", "value": 1322},
+                {"country": "India", "value": 1122},
+                {"country": "Australia", "value": 1114},
+                {"country": "Canada", "value": 984}
+            ],
+            "series": [
+                {
+                    "type": "PieSeries",
+                    "valueField": "value",
+                    "categoryField": "country"
+                }
+            ],
+            "legend": true // Enable legend
+        };
+
+        const bulletChartConfig = {
+            "type": "XYChart",
+            "data": [
+                {"category": "Day 1", "value": 10},
+                {"category": "Day 2", "value": 15},
+                {"category": "Day 3", "value": 12},
+                {"category": "Day 4", "value": 18},
+                {"category": "Day 5", "value": 20},
+                {"category": "Day 6", "value": 16},
+                {"category": "Day 7", "value": 22}
+            ],
+            "series": [
+                {
+                    "type": "LineSeries",
+                    "categoryField": "category",
+                    "valueField": "value",
+                    "name": "Progress",
+                    "bullets": true // Enable bullets
+                }
+            ],
+            "xAxes": [
+                {
+                    "type": "CategoryAxis",
+                    "renderer": {
+                        "grid": {
+                            "template": {
+                                "location": 0
+                            }
+                        }
+                    },
+                    "categoryField": "category"
+                }
+            ],
+            "yAxes": [
+                {
+                    "type": "ValueAxis",
+                    "renderer": {
+                        "grid": {
+                            "template": {
+                                "location": 0
+                            }
+                        }
+                    }
+                }
+            ]
+        };
+
+
+        const clusteredColumnChartConfig = {
+            "type": "XYChart",
+            "data": [
+    {
+        "category": "Jan",
+        "income": 837824,
+        "expenses": 543930
+    },
+    {
+        "category": "Feb",
+        "expenses": 526640,
+        "income": 915460
+    },
+    {
+        "category": "Mar",
+        "income": 833196,
+        "expenses": 504010
+    },
+    {
+        "category": "Apr",
+        "income": 860912,
+        "expenses": 504250
+    },
+    {
+        "category": "May",
+        "income": 910832,
+        "expenses": 499990
+    },
+    {
+        "category": "Jun",
+        "income": 808184,
+        "expenses-Coating": 0,
+        "expenses": 481040
+    },
+    {
+        "category": "Jul",
+        "income": 823992
+    }
+],
+ 
+            //  [
+            //     {"category": "Q1", "income": 4000, "expenses": 2500},
+            //     {"category": "Q2", "income": 5000, "expenses": 2800},
+            //     {"category": "Q3", "income": 3500, "expenses": 2200},
+            //     {"category": "Q4", "income": 6000, "expenses": 3000}
+            // ],
+            "series": [
+                {
+                    "type": "ColumnSeries",
+                    "categoryField": "category",
+                    "valueField": "income",
+                    "name": "Income",
+                    // "columns": {
+                    //     "template": {
+                    //         "fill": "am5.color(0x198754)", // Bootstrap green
+                    //         "strokeOpacity": 0,
+                    //         "cornerRadiusTL": 5,
+                    //         "cornerRadiusTR": 5
+                    //     }
+                    // }
+                },
+                {
+                    "type": "ColumnSeries",
+                    "categoryField": "category",
+                    "valueField": "expenses",
+                    "name": "Expenses",
+                    // "columns": {
+                    //     "template": {
+                    //         "fill": "am5.color(0xdc3545)", // Bootstrap red
+                    //         "strokeOpacity": 0,
+                    //         "cornerRadiusTL": 5,
+                    //         "cornerRadiusTR": 5
+                    //     }
+                    // }
+                }
+            ],
+            "xAxes": [
+                {
+                    "type": "CategoryAxis",
+                    "renderer": {
+                        "grid": {
+                            "template": {
+                                "location": 0
+                            }
+                        }
+                    },
+                    "categoryField": "category"
+                }
+            ],
+            "yAxes": [
+                {
+                    "type": "ValueAxis",
+                    "renderer": {
+                        "grid": {
+                            "template": {
+                                "location": 0
+                            }
+                        }
+                    }
+                }
+            ],
+            "legend": true // Enable legend
+        };
+
+        // Get references to the custom elements and set their configurations
+        document.addEventListener('DOMContentLoaded', () => {
+            const columnChartElement = document.getElementById('columnChart');
+            if (columnChartElement) {
+                columnChartElement.setAttribute('config', JSON.stringify(columnChartConfig));
+            }
+
+            const pieChartElement = document.getElementById('pieChart');
+            if (pieChartElement) {
+                pieChartElement.setAttribute('config', JSON.stringify(pieChartConfig));
+            }
+
+            const bulletChartElement = document.getElementById('bulletChart');
+            if (bulletChartElement) {
+                bulletChartElement.setAttribute('config', JSON.stringify(bulletChartConfig));
+            }
+
+            const clusteredColumnChartElement = document.getElementById('clusteredColumnChart');
+            if (clusteredColumnChartElement) {
+                clusteredColumnChartElement.setAttribute('config', JSON.stringify(clusteredColumnChartConfig));
+            }
+        });
+    </script>
+</body>
+</html>

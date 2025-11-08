@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screen & Element Capture Web Component</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        /* Custom styling for the web component */
+        screen-capture-component {
+            display: block;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 12px; /* Custom rounded corners */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box; /* Ensure padding is included in width */
+        }
+
+        .capture-section {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .capture-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .capture-button, .element-capture-button {
+            background-color: #007bff; /* Bootstrap primary blue */
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px; /* Custom rounded corners */
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .capture-button:hover, .element-capture-button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+            transform: translateY(-2px);
+        }
+
+        .capture-button:active, .element-capture-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .message-box {
+            background-color: #d1ecf1; /* Bootstrap info light */
+            color: #0c5460; /* Bootstrap info dark */
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+            border: 1px solid #bee5eb;
+            display: none; /* Hidden by default */
+            word-wrap: break-word; /* Ensure long messages break */
+            text-align: left;
+        }
+
+        .message-box.show {
+            display: block;
+        }
+
+        /* Specific styles for message box types */
+        .message-box.success {
+            background-color: #d4edda; /* Bootstrap success light */
+            color: #155724; /* Bootstrap success dark */
+            border-color: #c3e6cb;
+        }
+
+        .message-box.error {
+            background-color: #f8d7da; /* Bootstrap danger light */
+            color: #721c24; /* Bootstrap danger dark */
+            border-color: #f5c6cb;
+        }
+
+        .message-box.warning {
+            background-color: #fff3cd; /* Bootstrap warning light */
+            color: #664d03; /* Bootstrap warning dark */
+            border-color: #ffecb5;
+        }
+
+        .preview-container {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .screenshot-preview {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        video {
+            display: none; /* Hidden, used to capture frame */
+        }
+
+        .form-control {
+            width: 100%;
+            padding: .375rem .75rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #212529;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #ced4da;
+            appearance: none;
+            border-radius: .375rem;
+            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        }
+        .form-control:focus {
+            color: #212529;
+            background-color: #fff;
+            border-color: #86b7fe;
+            outline: 0;
+            box-shadow: 0 0 0 .25rem rgba(13,110,253,.25);
+        }
+    </style>
+</head>
+<body>
+
+    <h1 class="text-center mb-4 text-dark">Screen & Element Capture Web Component Demo</h1>
+
+    <div class="bg-light p-4 rounded-3 shadow-sm mb-4 w-100" style="max-width: 700px;">
+        <p class="text-secondary fs-5">
+            This demo showcases two ways to capture content:
+        </p>
+        <ul class="list-unstyled text-start">
+            <li><strong class="text-primary">Capture Screen:</strong> Uses the browser's native Screen Capture API (`getDisplayMedia`) to let you select a screen, window, or tab.</li>
+            <li><strong class="text-success">Capture Specific Element:</strong> Uses the experimental Element Capture API (`element.captureStream()`) to capture a video stream of a specific DOM element. The element must have an ID.</li>
+        </ul>
+        <p class="text-secondary fs-5 mt-3">
+            Try capturing the content of the two boxes below using the Element Capture option!
+        </p>
+    </div>
+
+    <div id="box1" class="bg-primary-subtle p-4 rounded-3 shadow-sm mb-4 w-100" style="max-width: 400px;">
+        <h2 class="text-primary fs-4">Box 1 Content (ID: box1)</h2>
+        <p class="text-primary-emphasis">This is some dynamic content inside Box 1. You can try to capture this specific box using its ID.</p>
+        <img src="https://placehold.co/150x80/0d6efd/ffffff?text=Box1+Img" alt="Placeholder Box 1 Image" class="rounded d-block mx-auto mt-3">
+    </div>
+
+    <div id="box2" class="bg-success-subtle p-4 rounded-3 shadow-sm mb-4 w-100" style="max-width: 400px;">
+        <h2 class="text-success fs-4">Box 2 Content (ID: box2)</h2>
+        <p class="text-success-emphasis">This is another piece of content within Box 2. Use 'box2' as the ID to capture this one!</p>
+        <p class="text-success-emphasis">It has <span class="fw-bold">bold text</span> and might even update dynamically.</p>
+    </div>
+
+    <!-- The custom web component -->
+    <screen-capture-component></screen-capture-component>
+
+    <!-- Bootstrap JS (Popper.js and Bootstrap bundle) -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" xintegrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" xintegrity="sha384-0pUGZvbkm6XF6gxjEnlco4jJ8yuWwIH72ObQ5oB5FdcfghgjrGC2gxijgSSw" crossorigin="anonymous"></script>
+
+    <script>
+        class ScreenCaptureComponent extends HTMLElement {
+            constructor() {
+                super();
+                // Create a shadow root for encapsulation
+                this.attachShadow({ mode: 'open' });
+                this.shadowRoot.innerHTML = `
+                    <style>
+                        :host {
+                            display: block;
+                            padding: 20px;
+                            background-color: white;
+                            border-radius: 12px;
+                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                            max-width: 700px;
+                            width: 100%;
+                            text-align: center;
+                            box-sizing: border-box;
+                        }
+
+                        .capture-section {
+                            margin-bottom: 25px;
+                            padding-bottom: 25px;
+                            border-bottom: 1px solid #eee;
+                        }
+
+                        .capture-section:last-child {
+                            border-bottom: none;
+                            margin-bottom: 0;
+                            padding-bottom: 0;
+                        }
+
+                        button {
+                            background-color: #007bff;
+                            color: white;
+                            padding: 12px 24px;
+                            border: none;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background-color 0.3s ease, transform 0.2s ease;
+                            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                        }
+
+                        button.element-capture-button {
+                            background-color: #28a745; /* Green for element capture */
+                        }
+
+                        button:hover {
+                            background-color: #0056b3;
+                            transform: translateY(-2px);
+                        }
+
+                        button.element-capture-button:hover {
+                            background-color: #218838;
+                        }
+
+                        button:active {
+                            transform: translateY(0);
+                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                        }
+
+                        .message-box {
+                            background-color: #d1ecf1;
+                            color: #0c5460;
+                            padding: 10px 15px;
+                            border-radius: 8px;
+                            margin-top: 15px;
+                            font-size: 14px;
+                            border: 1px solid #bee5eb;
+                            display: none;
+                            word-wrap: break-word;
+                            text-align: left;
+                        }
+
+                        .message-box.show {
+                            display: block;
+                        }
+
+                        .message-box.success {
+                            background-color: #d4edda;
+                            color: #155724;
+                            border-color: #c3e6cb;
+                        }
+
+                        .message-box.error {
+                            background-color: #f8d7da;
+                            color: #721c24;
+                            border-color: #f5c6cb;
+                        }
+
+                        .message-box.warning {
+                            background-color: #fff3cd;
+                            color: #664d03;
+                            border-color: #ffecb5;
+                        }
+
+                        .preview-container {
+                            margin-top: 20px;
+                            border-top: 1px solid #eee;
+                            padding-top: 20px;
+                        }
+
+                        .screenshot-preview {
+                            max-width: 100%;
+                            height: auto;
+                            border: 1px solid #ddd;
+                            border-radius: 8px;
+                            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                        }
+
+                        video {
+                            display: none; /* Hide the video element used for capturing frame */
+                        }
+
+                        .form-control {
+                            width: 100%;
+                            padding: .375rem .75rem;
+                            font-size: 1rem;
+                            font-weight: 400;
+                            line-height: 1.5;
+                            color: #212529;
+                            background-color: #fff;
+                            background-clip: padding-box;
+                            border: 1px solid #ced4da;
+                            appearance: none;
+                            border-radius: .375rem;
+                            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+                        }
+                        .form-control:focus {
+                            color: #212529;
+                            background-color: #fff;
+                            border-color: #86b7fe;
+                            outline: 0;
+                            box-shadow: 0 0 0 .25rem rgba(13,110,253,.25);
+                        }
+                    </style>
+                    <div class="capture-section">
+                        <h4 class="text-dark mb-3">Option 1: Capture Entire Screen/Window/Tab</h4>
+                        <button id="captureScreenBtn" class="btn btn-primary capture-button">Capture Screen</button>
+                    </div>
+
+                    <div class="capture-section">
+                        <h4 class="text-dark mb-3">Option 2: Capture Specific Element</h4>
+                        <div class="input-group mb-3">
+                            <input type="text" id="elementIdInput" class="form-control" placeholder="Enter element ID (e.g., box1 or box2)">
+                            <button id="captureElementBtn" class="btn btn-success element-capture-button">Capture Element</button>
+                        </div>
+                        <p class="text-muted text-sm">Note: Element Capture API might require browser flags or be experimental.</p>
+                    </div>
+
+                    <div id="messageBox" class="message-box"></div>
+                    <div id="previewContainer" class="preview-container" style="display: none;">
+                        <h3 class="fs-5 fw-semibold mb-3 text-secondary">Captured Screenshot:</h3>
+                        <img id="screenshotPreview" class="screenshot-preview" alt="Captured Screenshot">
+                        <p class="text-sm text-muted mt-2">Right-click or long-press the image to save it.</p>
+                    </div>
+                    <video id="videoElement" autoplay muted style="display: none;"></video>
+                `;
+
+                this.captureScreenBtn = this.shadowRoot.getElementById('captureScreenBtn');
+                this.elementIdInput = this.shadowRoot.getElementById('elementIdInput');
+                this.captureElementBtn = this.shadowRoot.getElementById('captureElementBtn');
+                this.messageBox = this.shadowRoot.getElementById('messageBox');
+                this.previewContainer = this.shadowRoot.getElementById('previewContainer');
+                this.screenshotPreview = this.shadowRoot.getElementById('screenshotPreview');
+                this.videoElement = this.shadowRoot.getElementById('videoElement');
+
+                this.captureScreenBtn.addEventListener('click', this.captureScreen.bind(this));
+                this.captureElementBtn.addEventListener('click', this.captureSpecificElement.bind(this));
+            }
+
+            showMessage(message, type = 'info') {
+                this.messageBox.textContent = message;
+                this.messageBox.className = `message-box show ${type}`;
+                setTimeout(() => {
+                    this.messageBox.classList.remove('show');
+                }, 5000); // Hide after 5 seconds
+            }
+
+            async captureScreen() {
+                this.captureScreenBtn.disabled = true;
+                this.captureElementBtn.disabled = true; // Disable other button during capture
+                this.previewContainer.style.display = 'none';
+                this.screenshotPreview.src = '';
+                this.showMessage('Requesting screen access...', 'info');
+
+                try {
+                    // Request access to display media (screen, window, or tab)
+                    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+
+                    this.showMessage('Screen access granted. Capturing frame...', 'info');
+
+                    // Set the stream to the video element to play it (briefly, then capture)
+                    this.videoElement.srcObject = stream;
+
+                    // Wait for the video to load metadata (to get dimensions)
+                    await new Promise(resolve => this.videoElement.onloadedmetadata = resolve);
+
+                    // Create a canvas element
+                    const canvas = document.createElement('canvas');
+                    canvas.width = this.videoElement.videoWidth;
+                    canvas.height = this.videoElement.videoHeight;
+                    const ctx = canvas.getContext('2d');
+
+                    // Draw the video frame onto the canvas
+                    ctx.drawImage(this.videoElement, 0, 0, canvas.width, canvas.height);
+
+                    // Stop the stream tracks to turn off screen sharing
+                    stream.getTracks().forEach(track => track.stop());
+                    this.videoElement.srcObject = null; // Clear the stream object
+
+                    const imgData = canvas.toDataURL('image/png'); // Get image data as PNG
+
+                    // Display the preview
+                    this.screenshotPreview.src = imgData;
+                    this.previewContainer.style.display = 'block';
+
+                    this.showMessage('Screenshot captured successfully! Right-click the image to save.', 'success');
+
+                } catch (error) {
+                    if (error.name === 'NotAllowedError') {
+                        this.showMessage('Screen capture denied. Please allow access to capture your screen.', 'warning');
+                    } else if (error.name === 'NotReadableError') {
+                         this.showMessage('The browser cannot start screen capture. This might be due to permissions or an ongoing capture.', 'error');
+                    }
+                    else {
+                        console.error('Error capturing screen:', error);
+                        this.showMessage(`Failed to capture screen: ${error.message}`, 'error');
+                    }
+                } finally {
+                    this.captureScreenBtn.disabled = false;
+                    this.captureElementBtn.disabled = false;
+                }
+            }
+
+            async captureSpecificElement() {
+                this.captureScreenBtn.disabled = true; // Disable other button during capture
+                this.captureElementBtn.disabled = true;
+                this.previewContainer.style.display = 'none';
+                this.screenshotPreview.src = '';
+
+                const elementId = this.elementIdInput.value.trim();
+                if (!elementId) {
+                    this.showMessage('Please enter an ID for the element to capture.', 'warning');
+                    this.captureScreenBtn.disabled = false;
+                    this.captureElementBtn.disabled = false;
+                    return;
+                }
+
+                const targetElement = document.getElementById(elementId);
+                if (!targetElement) {
+                    this.showMessage(`Element with ID "${elementId}" not found on the page.`, 'error');
+                    this.captureScreenBtn.disabled = false;
+                    this.captureElementBtn.disabled = false;
+                    return;
+                }
+
+                if (!targetElement.captureStream) {
+                    this.showMessage(`The Element Capture API (element.captureStream()) is currently experimental and not supported by your browser or the selected element. Please ensure experimental web platform features are enabled if using Chrome.`, 'error');
+                    this.captureScreenBtn.disabled = false;
+                    this.captureElementBtn.disabled = false;
+                    return;
+                }
+
+                this.showMessage(`Attempting to capture element with ID "${elementId}"...`, 'info');
+
+                try {
+                    // Get a MediaStream from the target element
+                    const stream = await targetElement.captureStream({ video: true, audio: false });
+
+                    this.showMessage(`Element "${elementId}" stream captured. Processing frame...`, 'info');
+
+                    // Set the stream to the video element to play it (briefly, then capture)
+                    this.videoElement.srcObject = stream;
+
+                    // Wait for the video to load metadata (to get dimensions)
+                    await new Promise(resolve => {
+                        this.videoElement.onloadedmetadata = () => {
+                            // Ensure the video is playing before capturing to get a valid frame
+                            if (this.videoElement.readyState >= 2) { // HAVE_CURRENT_DATA or higher
+                                resolve();
+                            } else {
+                                this.videoElement.oncanplaythrough = resolve; // Wait for enough data to play
+                            }
+                        };
+                    });
+
+
+                    // Create a canvas element
+                    const canvas = document.createElement('canvas');
+                    // Use the actual dimensions of the video stream from the element
+                    canvas.width = this.videoElement.videoWidth;
+                    canvas.height = this.videoElement.videoHeight;
+                    const ctx = canvas.getContext('2d');
+
+                    // Draw the video frame onto the canvas
+                    ctx.drawImage(this.videoElement, 0, 0, canvas.width, canvas.height);
+
+                    // Stop the stream tracks
+                    stream.getTracks().forEach(track => track.stop());
+                    this.videoElement.srcObject = null; // Clear the stream object
+
+                    const imgData = canvas.toDataURL('image/png'); // Get image data as PNG
+
+                    // Display the preview
+                    this.screenshotPreview.src = imgData;
+                    this.previewContainer.style.display = 'block';
+
+                    this.showMessage(`Screenshot of element "${elementId}" captured successfully! Right-click the image to save.`, 'success');
+
+                } catch (error) {
+                    console.error('Error capturing element:', error);
+                    this.showMessage(`Failed to capture element "${elementId}": ${error.message}. Ensure the element is visible and the API is supported.`, 'error');
+                } finally {
+                    this.captureScreenBtn.disabled = false;
+                    this.captureElementBtn.disabled = false;
+                }
+            }
+        }
+
+        // Define the custom element
+        customElements.define('screen-capture-component', ScreenCaptureComponent);
+    </script>
+
+</body>
+</html>

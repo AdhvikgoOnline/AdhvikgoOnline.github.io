@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>पावती</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@200;300;400;500;600;700;800&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .receipt-container {
+            max-width: 800px;
+            margin: 40px auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  
+  font-family: "Noto Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings:  "wdth" 100;
+        }
+        .card-header h1 {
+            color: #0056b3;
+            font-weight: bold;
+        }
+        .table th, .table td {
+            vertical-align: middle;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #777;
+        }
+        .signature-line {
+            border-top: 1px solid #333;
+            width: 200px;
+            margin-top: 50px;
+            padding-top: 5px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container receipt-container">
+        <div class="card">
+            <div class="card-header text-center py-4">
+                <h1>पावती</h1>
+                <p class="mb-1">[तुमच्या संस्थेचे/व्यवसायाचे नाव]</p>
+                <p class="mb-1">[तुमचा पत्ता, शहर, पिनकोड]</p>
+                <p class="mb-0">[तुमचा फोन नंबर] | [तुमचा ईमेल]</p>
+            </div>
+            <div class="card-body p-4">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><strong>पावती क्रमांक:</strong> <span class="text-primary">[पावती क्रमांक]</span></p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <p><strong>दिनांक:</strong> <span class="text-primary">२६ जुलै २०२५</span></p>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="mb-3">कडून:</h5>
+                        <p class="mb-1"><strong>नाव:</strong> [दात्याचे/जाहिरातदाराचे नाव]</p>
+                        <p class="mb-1"><strong>पत्ता:</strong> [दात्याचा/जाहिरातदाराचा पत्ता]</p>
+                        <p class="mb-0"><strong>दूरध्वनी:</strong> [दात्याचा/जाहिरातदाराचा फोन नंबर]</p>
+                    </div>
+                </div>
+
+                <h5 class="mb-3">वर्णन:</h5>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>वर्णन</th>
+                                <th>प्रकार</th>
+                                <th>रक्कम</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>[देणगी/जाहिरातीचे वर्णन, उदा. सामान्य देणगी / वार्षिक स्मरणिका जाहिरात]</td>
+                                <td>[देणगी/जाहिरात]</td>
+                                <td>रु. [रक्कम, उदा. ५,०००.००]</td>
+                            </tr>
+                            </tbody>
+                    </table>
+                </div>
+
+                <div class="row justify-content-end mb-4">
+                    <div class="col-md-6 text-end">
+                        <h4 class="text-primary">एकूण रक्कम: रु. [एकूण रक्कम, उदा. ५,०००.००]</h4>
+                        <p class="fw-bold">शब्दात: [रक्कम शब्दात, उदा. फक्त पाच हजार रुपये]</p>
+                    </div>
+                </div>
+
+                <div class="alert alert-info text-center" role="alert">
+                    [येथे देणगी/जाहिरातीबद्दलची कोणतीही विशेष टीप लिहा. उदा. ही पावती आयकर कायद्याच्या कलम ८०जी अंतर्गत कर सवलतीसाठी पात्र आहे (केवळ देणगीसाठी लागू असल्यास). कृपया लक्षात ठेवा, ही फक्त एक नमुना पावती आहे.]
+                </div>
+
+                <div class="text-end mt-5">
+                    <div class="signature-line ms-auto">
+                        <p class="mb-0">अधिकृत स्वाक्षरी</p>
+                    </div>
+                </div>
+
+                <div class="footer text-center mt-5">
+                    <p class="mb-1">तुमच्या योगदानाबद्दल धन्यवाद!</p>
+                    <p class="mb-0">आपला विश्वासू,</p>
+                    <p class="mb-0 fw-bold">[तुमचे नाव/संस्थेचे नाव]</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parent-Child Checkbox List</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        parent-child-list {
+            display: block;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: left; /* Align content to the left */
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 20px; /* Indent children lists */
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            font-size: 1rem;
+            color: #333;
+            user-select: none; /* Prevent text selection on label click */
+        }
+
+        input[type="checkbox"] {
+            margin-right: 8px;
+            min-width: 18px; /* Ensure checkbox is visible */
+            min-height: 18px;
+            cursor: pointer;
+            flex-shrink: 0; /* Prevent checkbox from shrinking */
+        }
+
+        .master-checkbox-label {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex; /* Use flex for master checkbox */
+            align-items: center;
+        }
+
+        .btn-get-selected {
+            background-color: #17a2b8;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+            width: auto; /* Allow button to size naturally */
+        }
+
+        .btn-get-selected:hover {
+            background-color: #138496;
+            transform: translateY(-2px);
+        }
+
+        .btn-get-selected:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .selected-items-output {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+            text-align: left;
+            border: 1px solid #dee2e6;
+            min-height: 50px; /* Ensure it's visible */
+        }
+
+        /* --- New styles for open/close functionality --- */
+        .parent-item > .parent-header-container > .toggle-icon {
+            transition: transform 0.2s ease-in-out;
+            cursor: pointer;
+            font-size: 0.8em;
+            transform: rotate(90deg); /* Default: pointing down (open) */
+            display: inline-block;
+            min-width: 1em; /* Ensure consistent spacing */
+            text-align: center;
+        }
+
+        /* Hide the child UL when the parent-item has the 'collapsed' class */
+        .parent-item.collapsed > ul {
+            display: none;
+        }
+
+        /* Rotate the icon when the parent-item is collapsed */
+        .parent-item.collapsed > .parent-header-container > .toggle-icon {
+            transform: rotate(0deg); /* Pointing right when collapsed */
+        }
+
+        /* Ensure parent-header-container has flex properties */
+        .parent-header-container {
+            display: flex;
+            align-items: center;
+            cursor: pointer; /* Make the whole header clickable for convenience */
+        }
+
+        /* Prevent checkbox clicks from bubbling up and toggling the section */
+        .parent-header-container input[type="checkbox"] {
+            pointer-events: auto; /* Allow checkbox clicks */
+        }
+    </style>
+</head>
+<body>
+
+    <h1 class="text-center mb-4 text-dark">Parent-Child Checkbox List Demo</h1>
+
+    <div class="bg-light p-4 rounded-3 shadow-sm mb-4 w-100" style="max-width: 600px;">
+        <p class="text-secondary fs-5">
+            Interact with the checkbox list below to see how parent and child selections are linked.
+            Click "Get Selected Items" to view the IDs of all currently checked items.
+        </p>
+        <p class="text-secondary fs-5 mt-3">
+            Click on the **arrow icon** or the **parent name** to open/close its children!
+        </p>
+    </div>
+
+    <!-- The custom web component -->
+    <parent-child-list></parent-child-list>
+
+    <!-- Bootstrap JS (Popper.js and Bootstrap bundle) -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" xintegrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" xintegrity="sha384-0pUGZvbkm6XF6gxjEnlco4jJ8yuWwIH72ObQ5oB5FdcfghgjrGC2gxijgSSw" crossorigin="anonymous"></script>
+
+    <script>
+        class ParentChildList extends HTMLElement {
+            constructor() {
+                super();
+                this.attachShadow({ mode: 'open' });
+
+                this.data = [
+                    {
+                        id: 'fruits',
+                        name: 'Fruits',
+                        children: [
+                            { id: 'apple', name: 'Apple' },
+                            { id: 'banana', name: 'Banana' },
+                            { id: 'citrus', name: 'Citrus', children: [
+                                { id: 'orange', name: 'Orange' },
+                                { id: 'lemon', name: 'Lemon' }
+                            ]}
+                        ]
+                    },
+                    {
+                        id: 'vegetables',
+                        name: 'Vegetables',
+                        children: [
+                            { id: 'carrot', name: 'Carrot' },
+                            { id: 'broccoli', name: 'Broccoli' }
+                        ]
+                    },
+                    {
+                        id: 'dairy',
+                        name: 'Dairy'
+                    }
+                ];
+
+                this.shadowRoot.innerHTML = `
+                    <style>
+                        :host {
+                            display: block;
+                            padding: 20px;
+                            background-color: white;
+                            border-radius: 12px;
+                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                            max-width: 600px;
+                            width: 100%;
+                            box-sizing: border-box;
+                            text-align: left;
+                        }
+
+                        ul {
+                            list-style: none;
+                            padding-left: 20px; /* Indent children lists */
+                            margin-top: 0;
+                            margin-bottom: 0;
+                        }
+
+                        li {
+                            margin-bottom: 8px;
+                        }
+
+                        label {
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            font-size: 1rem;
+                            color: #333;
+                            user-select: none; /* Prevent text selection on label click */
+                        }
+
+                        input[type="checkbox"] {
+                            margin-right: 8px;
+                            min-width: 18px;
+                            min-height: 18px;
+                            cursor: pointer;
+                            flex-shrink: 0;
+                        }
+
+                        .master-checkbox-label {
+                            font-weight: bold;
+                            font-size: 1.1rem;
+                            margin-bottom: 15px;
+                            padding-bottom: 10px;
+                            border-bottom: 1px solid #eee;
+                            display: flex; /* Use flex for master checkbox */
+                            align-items: center;
+                        }
+
+                        .btn-get-selected {
+                            background-color: #17a2b8;
+                            color: white;
+                            padding: 10px 20px;
+                            border: none;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background-color 0.3s ease, transform 0.2s ease;
+                            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                            margin-top: 20px;
+                            width: auto; /* Allow button to size naturally */
+                        }
+
+                        .btn-get-selected:hover {
+                            background-color: #138496;
+                            transform: translateY(-2px);
+                        }
+
+                        .btn-get-selected:active {
+                            transform: translateY(0);
+                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                        }
+
+                        .selected-items-output {
+                            background-color: #e9ecef;
+                            padding: 15px;
+                            border-radius: 8px;
+                            margin-top: 20px;
+                            font-family: 'Courier New', Courier, monospace;
+                            font-size: 0.9rem;
+                            white-space: pre-wrap;
+                            word-break: break-all;
+                            text-align: left;
+                            border: 1px solid #dee2e6;
+                            min-height: 50px; /* Ensure it's visible */
+                        }
+
+                        /* --- Styles for open/close functionality --- */
+                        .parent-item > .parent-header-container > .toggle-icon {
+                            transition: transform 0.2s ease-in-out;
+                            cursor: pointer;
+                            font-size: 0.8em;
+                            transform: rotate(90deg); /* Default: pointing down (open) */
+                            display: inline-block;
+                            min-width: 1em; /* Ensure consistent spacing */
+                            text-align: center;
+                        }
+
+                        /* Hide the child UL when the parent-item has the 'collapsed' class */
+                        .parent-item.collapsed > ul {
+                            display: none;
+                        }
+
+                        /* Rotate the icon when the parent-item is collapsed */
+                        .parent-item.collapsed > .parent-header-container > .toggle-icon {
+                            transform: rotate(0deg); /* Pointing right when collapsed */
+                        }
+
+                        /* Ensure parent-header-container has flex properties */
+                        .parent-header-container {
+                            display: flex;
+                            align-items: center;
+                            cursor: pointer; /* Make the whole header clickable for convenience */
+                        }
+
+                        /* Prevent checkbox clicks from bubbling up and toggling the section */
+                        .parent-header-container input[type="checkbox"] {
+                            pointer-events: auto; /* Allow checkbox clicks */
+                        }
+                    </style>
+
+                    <label class="master-checkbox-label">
+                        <input type="checkbox" id="masterSelectAll"> Select All
+                    </label>
+                    <div id="listContainer"></div>
+                    <button id="getSelectedBtn" class="btn-get-selected">Get Selected Items</button>
+                    <div id="selectedOutput" class="selected-items-output">No items selected.</div>
+                `;
+
+                this.masterSelectAll = this.shadowRoot.getElementById('masterSelectAll');
+                this.listContainer = this.shadowRoot.getElementById('listContainer');
+                this.getSelectedBtn = this.shadowRoot.getElementById('getSelectedBtn');
+                this.selectedOutput = this.shadowRoot.getElementById('selectedOutput');
+
+                this.renderList(this.data, this.listContainer);
+                this.addEventListeners();
+            }
+
+            /**
+             * Recursively renders the list items and their checkboxes.
+             * @param {Array} items - The array of items to render.
+             * @param {HTMLElement} parentElement - The DOM element to append the list to.
+             */
+            renderList(items, parentElement) {
+                const ul = document.createElement('ul');
+                ul.classList.add('list-group'); // Bootstrap list group class
+                parentElement.appendChild(ul);
+
+                items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.classList.add('list-group-item', 'border-0', 'p-0'); // Bootstrap list group item classes
+                    li.style.backgroundColor = 'transparent'; // Ensure transparency
+                    li.setAttribute('data-id', item.id); // Store item ID on the li
+
+                    const label = document.createElement('label');
+                    label.classList.add('d-flex', 'align-items-center'); // Added Bootstrap flex classes
+                    label.innerHTML = `
+                        <input type="checkbox" data-id="${item.id}">
+                        ${item.name}
+                    `;
+
+                    if (item.children && item.children.length > 0) {
+                        li.classList.add('parent-item'); // Mark as parent
+
+                        const parentHeaderContainer = document.createElement('div');
+                        parentHeaderContainer.classList.add('parent-header-container'); // Custom class for styling and event
+                        
+                        const toggleIcon = document.createElement('span');
+                        toggleIcon.classList.add('toggle-icon', 'me-2');
+                        toggleIcon.innerHTML = '&#9658;'; // Right-pointing triangle (will be rotated down by default CSS)
+
+                        parentHeaderContainer.appendChild(toggleIcon);
+                        parentHeaderContainer.appendChild(label); // Append checkbox and name label to this container
+
+                        li.appendChild(parentHeaderContainer); // Append the whole header to the li
+
+                        // Recursively render children into this li. This will create a new <ul> directly under the li.
+                        // The `ul` created by renderList will be appended to this `li`.
+                        this.renderList(item.children, li);
+
+                        // Add toggle functionality to the header container
+                        parentHeaderContainer.addEventListener('click', (event) => {
+                            // Only toggle if the click is not directly on the checkbox
+                            if (event.target.tagName !== 'INPUT' || event.target.type !== 'checkbox') {
+                                li.classList.toggle('collapsed');
+                            }
+                        });
+
+                    } else {
+                        li.appendChild(label); // For non-parent items, just append the label directly
+                    }
+                    ul.appendChild(li); // Finally, append the li to the current ul
+                });
+            }
+
+            /**
+             * Adds all necessary event listeners to the checkboxes and button.
+             */
+            addEventListeners() {
+                // Event listener for the master "Select All" checkbox
+                this.masterSelectAll.addEventListener('change', () => {
+                    const isChecked = this.masterSelectAll.checked;
+                    this.shadowRoot.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                        if (checkbox !== this.masterSelectAll) { // Don't re-trigger for master itself
+                            checkbox.checked = isChecked;
+                            checkbox.indeterminate = false; // Clear indeterminate state
+                            // If it's a parent checkbox, also update its children
+                            if (checkbox.parentNode.parentNode.classList.contains('parent-item')) {
+                                this.updateChildState(checkbox, isChecked);
+                            }
+                        }
+                    });
+                });
+
+                // Event listener for individual checkboxes (delegated for efficiency)
+                this.listContainer.addEventListener('change', (event) => {
+                    if (event.target.type === 'checkbox') {
+                        const changedCheckbox = event.target;
+                        const isChecked = changedCheckbox.checked;
+
+                        // If it's a parent checkbox, update its children
+                        // Check if the grandparent node (the li) has the 'parent-item' class
+                        if (changedCheckbox.closest('.parent-item')) { // Use closest to find the parent li
+                            this.updateChildState(changedCheckbox, isChecked);
+                        }
+
+                        // Always update parent states from the changed checkbox upwards
+                        this.updateParentState(changedCheckbox);
+
+                        // After any change, re-evaluate the master "Select All" checkbox
+                        this.updateMasterSelectAllState();
+                    }
+                });
+
+                // Event listener for the "Get Selected Items" button
+                this.getSelectedBtn.addEventListener('click', () => {
+                    const selectedIds = this.getCheckedItems();
+                    if (selectedIds.length > 0) {
+                        this.selectedOutput.textContent = JSON.stringify(selectedIds, null, 2);
+                    } else {
+                        this.selectedOutput.textContent = 'No items selected.';
+                    }
+                });
+            }
+
+            /**
+             * Updates the checked state of all children (and their descendants) of a given parent checkbox.
+             * @param {HTMLInputElement} parentCheckbox - The parent checkbox that triggered the change.
+             * @param {boolean} isChecked - The new checked state to apply to children.
+             */
+            updateChildState(parentCheckbox, isChecked) {
+                // Find the containing <li> for the parent checkbox
+                const parentLi = parentCheckbox.closest('.parent-item');
+                if (!parentLi) return; // Should not happen if called correctly
+
+                // Find all child checkboxes within this parent <li> (descendants)
+                const childCheckboxes = parentLi.querySelectorAll('ul input[type="checkbox"]');
+
+                childCheckboxes.forEach(childCheckbox => {
+                    childCheckbox.checked = isChecked;
+                    childCheckbox.indeterminate = false; // Clear indeterminate state for children
+                });
+            }
+
+            /**
+             * Updates the checked and indeterminate state of ancestor checkboxes based on their children.
+             * This function is called recursively upwards.
+             * @param {HTMLInputElement} changedCheckbox - The checkbox that was directly changed.
+             */
+            updateParentState(changedCheckbox) {
+                // Find the closest parent <ul>
+                let currentUl = changedCheckbox.closest('ul');
+
+                // Loop upwards through parent ULs until the main listContainer is reached
+                while (currentUl && currentUl.parentNode !== this.listContainer) {
+                    const parentLi = currentUl.parentNode; // This is the <li> of the parent item (e.g., 'Fruits' li for 'Apple' ul)
+                    if (!parentLi || !parentLi.classList.contains('parent-item')) {
+                        // If it's not a parent-item LI (e.g., a top-level UL's parent, or a non-parent LI), break.
+                        break;
+                    }
+
+                    const parentCheckbox = parentLi.querySelector('label > input[type="checkbox"]');
+                    if (!parentCheckbox) {
+                        console.warn('Parent checkbox not found for li:', parentLi);
+                        break; // Should not happen if structure is consistent
+                    }
+
+                    // Get all direct children checkboxes of the current parentLi's direct child ul
+                    const childrenCheckboxes = Array.from(parentLi.querySelector('ul').querySelectorAll(':scope > li > label > input[type="checkbox"]'));
+
+                    const checkedChildren = childrenCheckboxes.filter(cb => cb.checked);
+                    const indeterminateChildren = childrenCheckboxes.filter(cb => cb.indeterminate);
+
+                    if (checkedChildren.length === childrenCheckboxes.length) {
+                        // All direct children are checked
+                        parentCheckbox.checked = true;
+                        parentCheckbox.indeterminate = false;
+                    } else if (checkedChildren.length > 0 || indeterminateChildren.length > 0) {
+                        // Some children are checked or indeterminate
+                        parentCheckbox.checked = false;
+                        parentCheckbox.indeterminate = true;
+                    } else {
+                        // No direct children are checked or indeterminate
+                        parentCheckbox.checked = false;
+                        parentCheckbox.indeterminate = false;
+                    }
+
+                    // Move up to the next parent level (the UL containing the current parentLi)
+                    currentUl = parentLi.closest('ul');
+                }
+            }
+
+            /**
+             * Updates the state of the master "Select All" checkbox based on the top-level items.
+             */
+            updateMasterSelectAllState() {
+                const topLevelCheckboxes = Array.from(this.listContainer.querySelectorAll('ul > li > label > input[type="checkbox"]'));
+
+                const checkedTopLevel = topLevelCheckboxes.filter(cb => cb.checked);
+                const indeterminateTopLevel = topLevelCheckboxes.filter(cb => cb.indeterminate);
+
+                if (topLevelCheckboxes.length === 0) { // Handle empty list
+                    this.masterSelectAll.checked = false;
+                    this.masterSelectAll.indeterminate = false;
+                } else if (checkedTopLevel.length === topLevelCheckboxes.length) {
+                    this.masterSelectAll.checked = true;
+                    this.masterSelectAll.indeterminate = false;
+                } else if (checkedTopLevel.length > 0 || indeterminateTopLevel.length > 0) {
+                    this.masterSelectAll.checked = false;
+                    this.masterSelectAll.indeterminate = true;
+                } else {
+                    this.masterSelectAll.checked = false;
+                    this.masterSelectAll.indeterminate = false;
+                }
+            }
+
+
+            /**
+             * Collects the IDs of all currently checked items.
+             * @returns {Array<string>} An array of IDs of selected items.
+             */
+            getCheckedItems() {
+                const selectedIds = [];
+                // Query all checkboxes excluding the master select all
+                this.shadowRoot.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                    if (checkbox.id !== 'masterSelectAll') {
+                        selectedIds.push(checkbox.dataset.id);
+                    }
+                });
+                return selectedIds;
+            }
+        }
+
+        // Define the custom element
+        customElements.define('parent-child-list', ParentChildList);
+    </script>
+
+</body>
+</html>

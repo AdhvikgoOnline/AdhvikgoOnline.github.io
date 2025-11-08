@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bootstrap Theme Changer</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Inter font for better aesthetics -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bs-body-bg, #f8f9fa); /* Use Bootstrap body background var */
+            color: var(--bs-body-color, #212529); /* Use Bootstrap body color var */
+        }
+        .container {
+            max-width: 900px;
+        }
+        /* Custom styling for the theme-changer component itself */
+        theme-changer {
+            display: block; /* Make it a block element */
+            background-color: var(--bs-light); /* Use Bootstrap light color */
+            border: 1px solid var(--bs-border-color); /* Use Bootstrap border color */
+            border-radius: var(--bs-border-radius-xl); /* Use Bootstrap border radius */
+            padding: 1.5rem;
+            margin-top: 2rem;
+            box-shadow: var(--bs-box-shadow); /* Use Bootstrap box shadow */
+        }
+        .form-label {
+            font-weight: 500;
+        }
+        .color-input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        .color-input-group label {
+            flex: 1;
+            margin-bottom: 0;
+            padding-right: 1rem;
+        }
+        .color-input-group input[type="color"] {
+            width: 40px;
+            height: 40px;
+            border: none;
+            padding: 0;
+            border-radius: var(--bs-border-radius-sm);
+            cursor: pointer;
+        }
+        .btn-reset {
+            background-color: var(--bs-danger);
+            color: var(--bs-white);
+            border: none;
+            border-radius: var(--bs-border-radius-pill);
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-reset:hover {
+            background-color: var(--bs-danger-hover); /* Assuming a hover variable or darken */
+            transform: translateY(-2px);
+            box-shadow: var(--bs-box-shadow-sm);
+        }
+        /* Styling for the loading spinner */
+        .spinner-border {
+            width: 2rem;
+            height: 2rem;
+            margin-right: 0.5rem;
+        }
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: var(--bs-border-radius-xl);
+        }
+    </style>
+</head>
+<body>
+    <div class="container my-5">
+        <h1 class="text-center mb-4 text-primary">Bootstrap Theme Customizer</h1>
+
+        <p class="lead text-center mb-5">
+            Use the component below to dynamically change Bootstrap's primary color variables.
+            Observe how the elements on this page respond instantly. You can also upload an image to extract colors!
+        </p>
+
+        <!-- Example Bootstrap Elements -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white rounded-top-xl">
+                        <h5 class="mb-0">Primary Card Header</h5>
+                    </div>
+                    <div class="card-body rounded-bottom-xl">
+                        <p class="card-text">This card uses the <code>--bs-primary</code> color for its header.</p>
+                        <button class="btn btn-primary rounded-pill">Primary Button</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-secondary text-white rounded-top-xl">
+                        <h5 class="mb-0">Secondary Card Header</h5>
+                    </div>
+                    <div class="card-body rounded-bottom-xl">
+                        <p class="card-text">This card uses the <code>--bs-secondary</code> color for its header.</p>
+                        <button class="btn btn-secondary rounded-pill">Secondary Button</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="alert alert-success rounded-xl shadow-sm" role="alert">
+                    This is a success alert! It uses <code>--bs-success</code>.
+                </div>
+                <div class="alert alert-info rounded-xl shadow-sm" role="alert">
+                    This is an info alert! It uses <code>--bs-info</code>.
+                </div>
+                <div class="alert alert-warning rounded-xl shadow-sm" role="alert">
+                    This is a warning alert! It uses <code>--bs-warning</code>.
+                </div>
+                <div class="alert alert-danger rounded-xl shadow-sm" role="alert">
+                    This is a danger alert! It uses <code>--bs-danger</code>.
+                </div>
+            </div>
+        </div>
+
+        <!-- The custom web component -->
+        <theme-changer></theme-changer>
+    </div>
+
+    <!-- Bootstrap JS (optional, for components like dropdowns, tooltips etc.) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script>
+        // Define the ThemeChanger custom element
+        class ThemeChanger extends HTMLElement {
+            constructor() {
+                super(); // Always call super() first in the constructor
+
+                // No Shadow DOM attached, content will be directly appended to this element.
+                this.initialColors = {
+                    '--bs-primary': getComputedStyle(document.documentElement).getPropertyValue('--bs-primary').trim() || '#0d6efd',
+                    '--bs-secondary': getComputedStyle(document.documentElement).getPropertyValue('--bs-secondary').trim() || '#6c757d',
+                    '--bs-success': getComputedStyle(document.documentElement).getPropertyValue('--bs-success').trim() || '#198754',
+                    '--bs-info': getComputedStyle(document.documentElement).getPropertyValue('--bs-info').trim() || '#0dcaf0',
+                    '--bs-warning': getComputedStyle(document.documentElement).getPropertyValue('--bs-warning').trim() || '#ffc107',
+                    '--bs-danger': getComputedStyle(document.documentElement).getPropertyValue('--bs-danger').trim() || '#dc3545',
+                    '--bs-light': getComputedStyle(document.documentElement).getPropertyValue('--bs-light').trim() || '#f8f9fa',
+                    '--bs-dark': getComputedStyle(document.documentElement).getPropertyValue('--bs-dark').trim() || '#212529',
+                };
+            }
+
+            connectedCallback() {
+                // This method is called when the element is added to the DOM.
+                this.render();
+                this.addEventListeners();
+            }
+
+            render() {
+                // HTML structure for the theme changer UI
+                this.innerHTML = `
+                    <h4 class="mb-4 text-center">Customize Bootstrap Theme Colors</h4>
+                    <div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
+                        ${Object.keys(this.initialColors).map(prop => `
+                            <div class="col">
+                                <div class="color-input-group">
+                                    <label for="${prop.substring(2)}" class="form-label text-capitalize">${prop.substring(2).replace('bs-', '').replace('-', ' ')}:</label>
+                                    <input type="color" class="form-control-color" id="${prop.substring(2)}" value="${this.initialColors[prop]}" data-css-property="${prop}">
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="mb-4">
+                        <label for="imageUpload" class="form-label">Upload Image to Extract Colors:</label>
+                        <input class="form-control rounded-pill" type="file" id="imageUpload" accept="image/*">
+                        <small class="form-text text-muted">Upload an image to automatically update the theme colors based on its content.</small>
+                    </div>
+                    <div class="d-grid gap-2 col-6 mx-auto">
+                        <button type="button" class="btn btn-reset" id="resetTheme">Reset to Default</button>
+                    </div>
+                    <canvas id="colorCanvas" style="display: none;"></canvas>
+                    <div id="loadingOverlay" class="loading-overlay d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span class="text-primary">Extracting colors...</span>
+                    </div>
+                `;
+            }
+
+            addEventListeners() {
+                // Get all color input fields within this component
+                const colorInputs = this.querySelectorAll('input[type="color"]');
+                colorInputs.forEach(input => {
+                    input.addEventListener('input', this.handleColorChange.bind(this));
+                });
+
+                // Add event listener for the reset button
+                const resetButton = this.querySelector('#resetTheme');
+                if (resetButton) {
+                    resetButton.addEventListener('click', this.resetTheme.bind(this));
+                }
+
+                // Add event listener for image upload
+                const imageUploadInput = this.querySelector('#imageUpload');
+                if (imageUploadInput) {
+                    imageUploadInput.addEventListener('change', this.handleImageUpload.bind(this));
+                }
+            }
+
+            handleColorChange(event) {
+                const input = event.target;
+                const cssProperty = input.dataset.cssProperty; // Get the CSS variable name from data attribute
+                const newColor = input.value;
+
+                // Set the CSS variable on the document's root element (<html>)
+                document.documentElement.style.setProperty(cssProperty, newColor);
+            }
+
+            resetTheme() {
+                // Reset all CSS variables to their initial values
+                for (const prop in this.initialColors) {
+                    document.documentElement.style.setProperty(prop, this.initialColors[prop]);
+                }
+                // Update the color pickers to reflect the reset values
+                this.querySelectorAll('input[type="color"]').forEach(input => {
+                    const cssProperty = input.dataset.cssProperty;
+                    input.value = this.initialColors[cssProperty];
+                });
+            }
+
+            handleImageUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                this.showLoading(); // Show loading indicator
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = this.querySelector('#colorCanvas');
+                        const ctx = canvas.getContext('2d');
+
+                        // Set canvas dimensions to match image, but limit for performance
+                        const maxWidth = 200; // Max width for processing
+                        const maxHeight = 200; // Max height for processing
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width *= maxHeight / height;
+                                height = maxHeight;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        try {
+                            this.extractColorsFromCanvas(ctx, width, height);
+                        } catch (error) {
+                            console.error("Error extracting colors:", error);
+                            // Optionally, show a user-friendly message
+                        } finally {
+                            this.hideLoading(); // Hide loading indicator
+                        }
+                    };
+                    img.onerror = () => {
+                        console.error("Error loading image.");
+                        this.hideLoading();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.onerror = () => {
+                    console.error("Error reading file.");
+                    this.hideLoading();
+                };
+                reader.readAsDataURL(file);
+            }
+
+            extractColorsFromCanvas(ctx, width, height) {
+                const imageData = ctx.getImageData(0, 0, width, height).data;
+                const colors = {};
+
+                // Simple sampling strategy: pick colors from a few distinct points
+                // and assign them to Bootstrap variables.
+                // This is a basic demonstration, not a sophisticated color palette generator.
+
+                // Helper to get color from a specific pixel
+                const getColorAtPixel = (x, y) => {
+                    const index = (y * width + x) * 4;
+                    return `rgb(${imageData[index]}, ${imageData[index + 1]}, ${imageData[index + 2]})`;
+                };
+
+                // Get average color (for primary)
+                let r = 0, g = 0, b = 0;
+                const step = 10; // Sample every 10th pixel for performance
+                let count = 0;
+                for (let i = 0; i < imageData.length; i += 4 * step) {
+                    r += imageData[i];
+                    g += imageData[i + 1];
+                    b += imageData[i + 2];
+                    count++;
+                }
+                const avgR = Math.floor(r / count);
+                const avgG = Math.floor(g / count);
+                const avgB = Math.floor(b / count);
+                colors['--bs-primary'] = `rgb(${avgR}, ${avgG}, ${avgB})`;
+
+                // Get colors from corners/center for other themes
+                colors['--bs-secondary'] = getColorAtPixel(Math.floor(width * 0.25), Math.floor(height * 0.75));
+                colors['--bs-success'] = getColorAtPixel(Math.floor(width * 0.75), Math.floor(height * 0.25));
+                colors['--bs-info'] = getColorAtPixel(Math.floor(width * 0.5), Math.floor(height * 0.5)); // Center
+                colors['--bs-warning'] = getColorAtPixel(Math.floor(width * 0.1), Math.floor(height * 0.1)); // Top-leftish
+                colors['--bs-danger'] = getColorAtPixel(Math.floor(width * 0.9), Math.floor(height * 0.9)); // Bottom-rightish
+
+                // Apply the extracted colors
+                for (const prop in colors) {
+                    document.documentElement.style.setProperty(prop, colors[prop]);
+                }
+
+                // Update the color picker inputs to reflect the new values
+                this.querySelectorAll('input[type="color"]').forEach(input => {
+                    const cssProperty = input.dataset.cssProperty;
+                    if (colors[cssProperty]) {
+                        // Convert RGB to hex for color input value
+                        input.value = this.rgbToHex(colors[cssProperty]);
+                    }
+                });
+            }
+
+            // Helper function to convert RGB string to Hex
+            rgbToHex(rgb) {
+                const parts = rgb.match(/\d+/g);
+                if (!parts || parts.length < 3) return '#000000';
+                const r = parseInt(parts[0]);
+                const g = parseInt(parts[1]);
+                const b = parseInt(parts[2]);
+                return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+            }
+
+            showLoading() {
+                const loadingOverlay = this.querySelector('#loadingOverlay');
+                if (loadingOverlay) {
+                    loadingOverlay.classList.remove('d-none');
+                }
+            }
+
+            hideLoading() {
+                const loadingOverlay = this.querySelector('#loadingOverlay');
+                if (loadingOverlay) {
+                    loadingOverlay.classList.add('d-none');
+                }
+            }
+
+            disconnectedCallback() {
+                // Clean up event listeners if the element is removed from the DOM
+                const colorInputs = this.querySelectorAll('input[type="color"]');
+                colorInputs.forEach(input => {
+                    input.removeEventListener('input', this.handleColorChange.bind(this));
+                });
+                const resetButton = this.querySelector('#resetTheme');
+                if (resetButton) {
+                    resetButton.removeEventListener('click', this.resetTheme.bind(this));
+                }
+                const imageUploadInput = this.querySelector('#imageUpload');
+                if (imageUploadInput) {
+                    imageUploadInput.removeEventListener('change', this.handleImageUpload.bind(this));
+                }
+            }
+        }
+
+        // Define the custom element 'theme-changer'
+        customElements.define('theme-changer', ThemeChanger);
+    </script>
+</body>
+</html>

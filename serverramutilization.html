@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Monitoring Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .main-container {
+            text-align: center;
+            max-width: 1000px;
+            width: 100%;
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Styles for the server-monitor web component itself (within shadow DOM) */
+        server-monitor {
+            display: block;
+            width: 100%;
+            max-width: 1000px;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <h1 class="text-center mb-4 text-dark">Live Server CPU & RAM Utilization</h1>
+        <p class="text-secondary fs-5">
+            This dashboard displays server resource usage. Data updates every minute.
+            You can switch between real-time (last minute) and historical (last 30 minutes) views.
+        </p>
+    </div>
+
+    <!-- The custom web component for server monitoring -->
+    <server-monitor></server-monitor>
+
+    <!-- Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <!-- date-fns library (required by chartjs-adapter-date-fns) -->
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/cdn.min.js"></script>
+    <!-- Chart.js Date Adapter for date-fns -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.umd.min.js"></script>
+
+    <!-- Bootstrap JS (Popper.js and Bootstrap bundle) -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
+
+    <script>
+        class ServerMonitor extends HTMLElement {
+            constructor() {
+                super();
+                this.attachShadow({ mode: 'open' });
+
+                this.shadowRoot.innerHTML = `
+                    <style>
+                        :host {
+                            display: block;
+                            font-family: 'Inter', sans-serif;
+                        }
+                        .monitor-container {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 20px;
+                        }
+                        .chart-card {
+                            background-color: #f8f9fa; /* Bootstrap light */
+                            border-radius: 8px;
+                            padding: 15px;
+                            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                        }
+                        .chart-canvas-wrapper {
+                            position: relative;
+                            height: 300px; /* Fixed height for charts */
+                            width: 100%;
+                        }
+                        .controls {
+                            display: flex;
+                            justify-content: center;
+                            gap: 15px;
+                            margin-bottom: 20px;
+                        }
+                        .loading-overlay {
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            background: rgba(255, 255, 255, 0.8);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 1.2rem;
+                            color: #555;
+                            z-index: 10;
+                            border-radius: 8px;
+                        }
+                        .message-box {
+                            padding: 10px 15px;
+                            border-radius: 8px;
+                            margin-top: 15px;
+                            font-size: 14px;
+                            display: block; /* Always visible for errors/info */
+                            word-wrap: break-word;
+                            text-align: center;
+                        }
+                        .message-box.alert-danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+                        .message-box.alert-info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+                    </style>
+                    <div class="monitor-container">
+                        <div class="controls">
+                            <button id="realtimeBtn" class="btn btn-primary">Real-time (Current Minute)</button>
+                            <button id="historyBtn" class="btn btn-secondary">Last 30 Minutes</button>
+                        </div>
+
+                        <div class="message-box alert-info d-none" id="statusMessage"></div>
+
+                        <div class="chart-card">
+                            <h5 class="text-center mb-3">CPU Utilization (%)</h5>
+                            <div class="chart-canvas-wrapper">
+                                <canvas id="cpuChart"></canvas>
+                                <div id="cpuLoadingOverlay" class="loading-overlay d-none">Loading CPU data...</div>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h5 class="text-center mb-3">RAM Utilization (%)</h5>
+                            <div class="chart-canvas-wrapper">
+                                <canvas id="ramChart"></canvas>
+                                <div id="ramLoadingOverlay" class="loading-overlay d-none">Loading RAM data...</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // References to shadow DOM elements
+                this.cpuChartCanvas = this.shadowRoot.getElementById('cpuChart');
+                this.ramChartCanvas = this.shadowRoot.getElementById('ramChart');
+                this.realtimeBtn = this.shadowRoot.getElementById('realtimeBtn');
+                this.historyBtn = this.shadowRoot.getElementById('historyBtn');
+                this.cpuLoadingOverlay = this.shadowRoot.getElementById('cpuLoadingOverlay');
+                this.ramLoadingOverlay = this.shadowRoot.getElementById('ramLoadingOverlay');
+                this.statusMessage = this.shadowRoot.getElementById('statusMessage');
+
+                this.cpuChart = null;
+                this.ramChart = null;
+                this.updateInterval = null; // To hold the setInterval ID
+                this.currentViewMode = 'realtime'; // 'realtime' or 'history'
+
+                // API Endpoints (replace with your actual API base URL)
+                this.apiBaseUrl = 'http://localhost:5000/api/ServerMonitor'; // Example: Adjust this URL
+
+                this.historicalMinutes = 30; // Number of minutes for historical view
+
+                // Bind event listeners
+                this.realtimeBtn.addEventListener('click', () => this.toggleView('realtime'));
+                this.historyBtn.addEventListener('click', () => this.toggleView('history'));
+            }
+
+            connectedCallback() {
+                this.initCharts();
+                this.toggleView(this.currentViewMode, true); // Initial fetch and set up
+            }
+
+            disconnectedCallback() {
+                this.stopRealtimeUpdates();
+                if (this.cpuChart) this.cpuChart.destroy();
+                if (this.ramChart) this.ramChart.destroy();
+            }
+
+            /**
+             * Initializes Chart.js instances for CPU and RAM.
+             */
+            initCharts() {
+                const commonChartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 500, // Smooth transition
+                        easing: 'easeInOutQuad'
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'minute',
+                                displayFormats: {
+                                    minute: 'HH:mm'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Time (HH:MM)'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Usage (%)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw.y.toFixed(2)}%`;
+                                }
+                            }
+                        }
+                    }
+                };
+
+                this.cpuChart = new Chart(this.cpuChartCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'CPU',
+                            data: [],
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.1,
+                            fill: true,
+                            pointRadius: 3,
+                            pointHoverRadius: 5
+                        }]
+                    },
+                    options: commonChartOptions
+                });
+
+                this.ramChart = new Chart(this.ramChartCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'RAM',
+                            data: [],
+                            borderColor: 'rgb(153, 102, 255)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                            tension: 0.1,
+                            fill: true,
+                            pointRadius: 3,
+                            pointHoverRadius: 5
+                        }]
+                    },
+                    options: commonChartOptions
+                });
+            }
+
+            /**
+             * Toggles between real-time and historical view.
+             * @param {string} mode - 'realtime' or 'history'
+             * @param {boolean} initialLoad - true if called during initial component load
+             */
+            async toggleView(mode, initialLoad = false) {
+                if (this.currentViewMode === mode && !initialLoad) {
+                    return; // Already in this mode
+                }
+
+                this.currentViewMode = mode;
+                this.updateButtonStates();
+                this.showMessage('Fetching data...', 'info');
+                this.setLoading(true);
+
+                this.stopRealtimeUpdates(); // Always stop existing interval
+
+                if (mode === 'realtime') {
+                    await this.fetchAndRenderCurrentData();
+                    this.startRealtimeUpdates(); // Start interval for real-time
+                } else { // history mode
+                    await this.fetchAndRenderHistoricalData();
+                }
+
+                this.setLoading(false);
+                this.hideMessage();
+            }
+
+            /**
+             * Updates button active states.
+             */
+            updateButtonStates() {
+                if (this.currentViewMode === 'realtime') {
+                    this.realtimeBtn.classList.add('btn-primary');
+                    this.realtimeBtn.classList.remove('btn-secondary');
+                    this.historyBtn.classList.add('btn-secondary');
+                    this.historyBtn.classList.remove('btn-primary');
+                } else {
+                    this.realtimeBtn.classList.add('btn-secondary');
+                    this.realtimeBtn.classList.remove('btn-primary');
+                    this.historyBtn.classList.add('btn-primary');
+                    this.historyBtn.classList.remove('btn-secondary');
+                }
+            }
+
+            /**
+             * Fetches and renders current minute's data.
+             */
+            async fetchAndRenderCurrentData() {
+                try {
+                    const response = await fetch(`${this.apiBaseUrl}/CurrentUtilization`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    this.updateChartsSinglePoint(data);
+                } catch (error) {
+                    console.error('Error fetching current utilization:', error);
+                    this.showMessage(`Failed to load current data: ${error.message}. Please check API.`, 'danger');
+                }
+            }
+
+            /**
+             * Fetches and renders historical data.
+             */
+            async fetchAndRenderHistoricalData() {
+                try {
+                    const response = await fetch(`${this.apiBaseUrl}/HistoricalUtilization?minutes=${this.historicalMinutes}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    this.updateChartsHistorical(data);
+                } catch (error) {
+                    console.error('Error fetching historical utilization:', error);
+                    this.showMessage(`Failed to load historical data: ${error.message}. Please check API.`, 'danger');
+                }
+            }
+
+            /**
+             * Updates charts with a single new data point (for real-time).
+             * Adds the new point and removes the oldest if exceeding limit.
+             * @param {Object} data - { timestamp, cpuUsage, ramUsage }
+             */
+            updateChartsSinglePoint(data) {
+                const maxPoints = this.historicalMinutes; // Max points to show in real-time view (effectively 30)
+
+                // Get current chart data
+                const cpuLabels = this.cpuChart.data.labels;
+                const cpuData = this.cpuChart.data.datasets[0].data;
+                const ramLabels = this.ramChart.data.labels;
+                const ramData = this.ramChart.data.datasets[0].data;
+
+                // Add new data point
+                cpuLabels.push(data.timestamp);
+                cpuData.push({ x: data.timestamp, y: data.cpuUsage });
+                ramLabels.push(data.timestamp);
+                ramData.push({ x: data.timestamp, y: data.ramUsage });
+
+                // Remove oldest data point if exceeding max points
+                if (cpuLabels.length > maxPoints) {
+                    cpuLabels.shift();
+                    cpuData.shift();
+                    ramLabels.shift();
+                    ramData.shift();
+                }
+
+                this.cpuChart.update();
+                this.ramChart.update();
+            }
+
+            /**
+             * Updates charts with a full set of historical data.
+             * @param {Array<Object>} historicalData - Array of { timestamp, cpuUsage, ramUsage }
+             */
+            updateChartsHistorical(historicalData) {
+                const cpuLabels = [];
+                const cpuData = [];
+                const ramLabels = [];
+                const ramData = [];
+
+                historicalData.forEach(item => {
+                    cpuLabels.push(item.timestamp);
+                    cpuData.push({ x: item.timestamp, y: item.cpuUsage });
+                    ramLabels.push(item.timestamp);
+                    ramData.push({ x: item.timestamp, y: item.ramUsage });
+                });
+
+                this.cpuChart.data.labels = cpuLabels;
+                this.cpuChart.data.datasets[0].data = cpuData;
+                this.ramChart.data.labels = ramLabels;
+                this.ramChart.data.datasets[0].data = ramData;
+
+                this.cpuChart.update();
+                this.ramChart.update();
+            }
+
+            /**
+             * Starts fetching current data at a regular interval (every minute).
+             */
+            startRealtimeUpdates() {
+                this.stopRealtimeUpdates(); // Ensure no multiple intervals running
+                // Update every 60 seconds (60000 milliseconds)
+                this.updateInterval = setInterval(() => {
+                    if (this.currentViewMode === 'realtime') {
+                        this.fetchAndRenderCurrentData();
+                    }
+                }, 60000); // 1 minute
+                console.log('Real-time updates started.');
+            }
+
+            /**
+             * Stops the real-time data fetching interval.
+             */
+            stopRealtimeUpdates() {
+                if (this.updateInterval) {
+                    clearInterval(this.updateInterval);
+                    this.updateInterval = null;
+                    console.log('Real-time updates stopped.');
+                }
+            }
+
+            /**
+             * Shows/hides loading overlays for charts.
+             * @param {boolean} isLoading - true to show loading, false to hide.
+             */
+            setLoading(isLoading) {
+                this.cpuLoadingOverlay.classList.toggle('d-none', !isLoading);
+                this.ramLoadingOverlay.classList.toggle('d-none', !isLoading);
+                this.realtimeBtn.disabled = isLoading;
+                this.historyBtn.disabled = isLoading;
+            }
+
+            /**
+             * Displays a status message to the user.
+             * @param {string} message - The message to display.
+             * @param {string} type - 'info' or 'danger' for styling.
+             */
+            showMessage(message, type = 'info') {
+                this.statusMessage.textContent = message;
+                this.statusMessage.classList.remove('d-none', 'alert-info', 'alert-danger');
+                this.statusMessage.classList.add(`alert-${type}`);
+            }
+
+            /**
+             * Hides the status message.
+             */
+            hideMessage() {
+                this.statusMessage.classList.add('d-none');
+            }
+        }
+
+        // Define the custom element
+        customElements.define('server-monitor', ServerMonitor);
+    </script>
+
+</body>
+</html>
+<!-- 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web.Http;
+using System.Threading.Tasks;
+using System.Net.Http;
+using System.Net;
+
+// You might need to add these namespaces depending on your project setup
+// using System.Diagnostics; // For real-time performance counters (requires elevated permissions)
+// using System.Data.SqlClient; // For MSSQL database interaction
+
+namespace YourProjectName.Controllers
+{
+    // Define the route prefix for this controller
+    [RoutePrefix("api/ServerMonitor")]
+    public class ServerMonitorController : ApiController
+    {
+        // Data structure to represent a single utilization record
+        public class UtilizationData
+        {
+            public DateTime Timestamp { get; set; }
+            public double CpuUsage { get; set; }
+            public double RamUsage { get; set; }
+        }
+
+        // GET: api/ServerMonitor/CurrentUtilization
+        /// <summary>
+        /// Retrieves the current CPU and RAM utilization.
+        /// In a real application, this would query live performance counters or the latest database entry.
+        /// </summary>
+        /// <returns>A JSON object containing timestamp, CPU, and RAM usage.</returns>
+        [HttpGet]
+        [Route("CurrentUtilization")]
+        public IHttpActionResult GetCurrentUtilization()
+        {
+            try
+            {
+                // --- Replace this with actual server monitoring logic ---
+                // Example: Get current CPU and RAM (conceptual, requires proper implementation)
+                // Using dummy data for demonstration
+                var random = new Random();
+                var currentData = new UtilizationData
+                {
+                    Timestamp = DateTime.UtcNow, // Use UTC for consistency
+                    CpuUsage = Math.Round(random.NextDouble() * 100, 2), // Random CPU usage 0-100%
+                    RamUsage = Math.Round(random.NextDouble() * 100, 2)  // Random RAM usage 0-100%
+                };
+
+                // Example of using PerformanceCounter (requires permissions and careful handling):
+                // PerformanceCounter cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+                // PerformanceCounter ramCounter = new PerformanceCounter("Memory", "% Committed Bytes In Use");
+                // float currentCpu = cpuCounter.NextValue(); // Call twice for accurate reading
+                // System.Threading.Thread.Sleep(1000);
+                // currentCpu = cpuCounter.NextValue();
+                // float currentRam = ramCounter.NextValue();
+
+                // currentData.CpuUsage = Math.Round(currentCpu, 2);
+                // currentData.RamUsage = Math.Round(currentRam, 2);
+                // --------------------------------------------------------
+
+                return Ok(currentData); // Return 200 OK with the data
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (e.g., using a logging framework)
+                Console.WriteLine($"Error in GetCurrentUtilization: {ex.Message}");
+                return InternalServerError(ex); // Return 500 Internal Server Error
+            }
+        }
+
+        // GET: api/ServerMonitor/HistoricalUtilization?minutes={N}
+        /// <summary>
+        /// Retrieves historical CPU and RAM utilization for the specified number of minutes.
+        /// In a real application, this would query a database (e.g., MSSQL) for historical logs.
+        /// </summary>
+        /// <param name="minutes">The number of past minutes to retrieve data for.</param>
+        /// <returns>A JSON array of utilization data points.</returns>
+        [HttpGet]
+        [Route("HistoricalUtilization")]
+        public IHttpActionResult GetHistoricalUtilization(int minutes)
+        {
+            if (minutes <= 0)
+            {
+                return BadRequest("Minutes parameter must be greater than zero.");
+            }
+
+            try
+            {
+                // --- Replace this with actual database query logic ---
+                // Example: Simulate historical data for demonstration
+                var historicalData = new List<UtilizationData>();
+                var random = new Random();
+                var endTime = DateTime.UtcNow;
+
+                for (int i = 0; i < minutes; i++)
+                {
+                    var timestamp = endTime.AddMinutes(-i);
+                    historicalData.Add(new UtilizationData
+                    {
+                        Timestamp = timestamp,
+                        CpuUsage = Math.Round(random.NextDouble() * 100, 2),
+                        RamUsage = Math.Round(random.NextDouble() * 100, 2)
+                    });
+                }
+
+                // Reverse the list to have the oldest data first, as expected by Chart.js time scale
+                historicalData.Reverse();
+
+                // Example of fetching from MSSQL (conceptual):
+                /*
+                using (var connection = new SqlConnection("YourConnectionString"))
+                {
+                    connection.Open();
+                    string query = $"SELECT TOP (@minutes) Timestamp, CpuUsage, RamUsage FROM ServerLogs ORDER BY Timestamp DESC";
+                    using (var command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@minutes", minutes);
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                historicalData.Add(new UtilizationData
+                                {
+                                    Timestamp = reader.GetDateTime(0),
+                                    CpuUsage = reader.GetDouble(1),
+                                    RamUsage = reader.GetDouble(2)
+                                });
+                            }
+                        }
+                    }
+                }
+                historicalData.Reverse(); // Ensure chronological order if fetched DESC
+                */
+                // --------------------------------------------------------
+
+                return Ok(historicalData); // Return 200 OK with the data
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                Console.WriteLine($"Error in GetHistoricalUtilization: {ex.Message}");
+                return InternalServerError(ex);
+            }
+        }
+    }
+}
+ -->
+
+<!-- 
+ Code for Regisrter Page on 090625
+
+var basedtaaaaaa;
+// var scrollSpy = new bootstrap.ScrollSpy($("main"), {
+//   target: '#navAccount_aaaaaa'
+// })
+
+$(function() {
+    // 75_30 for company -- b79_76c for person with aadharcard
+    try {
+
+        //$(".viewaaaaaa", "#ACaaaaaa").html('');
+        //$("#S00aaaaaa").addClass("d-none");
+        var maaaaaa = cAccountMenu["faaaaaa"];
+        $("#F00aaaaaa").data("uparent", "AccountTypeIds=" + maaaaaa.c); 
+        // if(maaaaaa.cp) $("#companypersonaaaaaa").addClass('d-none');
+        // else $("#companypersonaaaaaa").removeClass('d-none');
+        // if("aaaaaa" == "000474") $("#F00aaaaaa").html($("#companyaaaaaa").html());
+        let dfaaaaaa = "";
+        let l1 = "", d1 = "", bae = "";
+        for(j = 0; j < cAccountSubMneu.length; j++) {
+            dfaaaaaa = cAccountSubMneu[j].f.split('`');
+            if(maaaaaa.m.search("`" + dfaaaaaa[0] + "`") < 0) continue;
+            l1 += `
+        <li class="nav-item">
+            <a class="nav-link" id="${cAccountSubMneu[j].i}${Math.random()}_aaaaaa" data-href="#${cAccountSubMneu[j].i}_aaaaaa" data-f="${cAccountSubMneu[j].f}" data-title="${cAccountSubMneu[j].l}" data-container="#formsaaaaaa">${cAccountSubMneu[j].l}</a>
+        </li>
+        `;
+            t1 = `<i class="bi-person-vcard"></i><span>${cAccountSubMneu[j].l}</span>`;
+            // d1 += `<div id="${cAccountSubMneu[j].i}_aaaaaa" class="loadpage viewaaaaaa ${cAccountSubMneu[j].a}" data-f="${cAccountSubMneu[j].f}" data-title='${t1}'></div>`;
+        }
+        $("#navAccount_aaaaaa .navbar-nav").append(l1);
+        //$("#formsaaaaaa").append(d1);
+        if(basedtaaaaaa != undefined) {
+            headeraaaaaa();
+        }
+    } catch {
+        
+    }
+        //AFaaaaaaNew($("ACaaaaaa"));
+});
+
+function AFaaaaaaPN(t) {
+    let cv = t.value;
+    if(cv == "prev") {
+
+    } else {
+
+    }
+}
+// function AFaaaaaaNew(f) {
+//     $(".viewaaaaaa", f).html('');
+//     $("#S00000425").addClass("d-none");
+
+//     var maaaaaa = cAccountMenu["faaaaaa"];
+//     $("#F00aaaaaa").data("uparent", "AccountTypeIds=" + maaaaaa.c); 
+//     if(maaaaaa.cp) $("#companypersonaaaaaa").addClass('d-none');
+//     else $("#companypersonaaaaaa").removeClass('d-none');
+//     let asformaaaaaa = maaaaaa.m.split(','); let dfaaaaaa = "";
+//     $("#S00aaaaaa .loadpage").each(function() {
+//         dfaaaaaa = $(this).data("f").split('`');
+//         if(maaaaaa.m.search("`" + dfaaaaaa[0] + "`") < 0) $(this).remove(); 
+//     });
+
+//     if(basedtaaaaaa != undefined) {
+//         headeraaaaaa();
+//     }
+// }
+// $("[name=ckcompanypersonaaaaaa]").on('change', function() {
+//     //this.value
+//     $("#F00aaaaaa").html($(this.value).html());
+//     // if(this.value == "p") {
+//     //     $("#F00aaaaaa").html($("#personaaaaaa").html());
+//     // } else if(this.value == "c") {
+//     //     $("#F00aaaaaa").html($("#companyaaaaaa").html());
+//     // }
+// });
+// $(function () {
+//     //if ($('#tb0aaaaaa').length > 0 && window.location.href.toLowerCase().indexOf("amatyaz") > 0) loadtable($('#tb0aaaaaa'));
+
+//     $('.noduplicate', '#F00aaaaaa').blur(function () {
+//         var oc = this;
+//         oc.setCustomValidity('Checking for duplicate value... Please wait! After some time try again to submit !');
+//         var c = $(this).val(); var ii = $(this).attr('name').substr(5); var dm = $(this).data('message') == undefined ? 'Value already Exists! Try another ...' : $(this).data('message');
+//         $.ajax({
+//             method: "POST",
+//             url: "aim.asmx/CheckUnique", data: {
+//                 cv: c, tb: 'account', col: ii, idf: '', idv: 'CompanyId=0', dmsg: dm
+//             }
+//         }).done(function (msg) {
+//             oc.setCustomValidity(msg);
+//         });
+//         if ($(this).val() == '22') this.setCustomValidity('Passwords must match');
+//         else this.setCustomValidity('');
+//     });
+// });
+
+function AFaaaaaaReset() {
+}
+function headeraaaaaa() {
+    $("#useraaaaaa img", "#ACaaaaaa").attr('src', `[AImageAPI][AImagePath]${basedtaaaaaa.NId}/id1--100.jpg?v=${Math.random()}`);
+    $("#useraaaaaa figcaption div:first-child", "#ACaaaaaa").html(`${unstr(basedtaaaaaa.FName)} ${unstr(basedtaaaaaa.LName)}`);
+}
+// $(function() {
+//     let myaaaaaa = "aaaaaa"; // "aigcke("aiui")"; 
+//     if(myaaaaaa == "000476") {
+//         aifetchq("", "do=1-b139_120s", 'list',"","","", function(d) {}, function(d) {
+//             if(d.data1 == '') return;
+//             basedtaaaaaa = d.data1[0];
+//             headeraaaaaa();
+//             SetToInput($("#F00aaaaaa"), basedtaaaaaa, '');
+//         });
+//     }
+// });
+function AFaaaaaaAfterSubmit(data) {
+    // $("#F00aaaaaa, #companypersonaaaaaa").addClass("d-none"); $("#S00aaaaaa, #I00aaaaaa").removeClass("d-none");
+    // basedtaaaaaa = data;
+    // headeraaaaaa();
+    // SetToInput($("#F00aaaaaa"), basedtaaaaaa.data3[0], '');
+    // let udt = data;
+    // aiscke('aiui', data.data3[0].AccountId, 31);
+    // //aiscke('aiut', d.data1[0].AccountTypeId, 31);
+    // //aiscke('aiur', ',' + d.data1[0].ARoleIds + ',', 31);
+    // aiscke('aiun', data.data3[0].FName + (data.data3[0].LName == undefined ? '' : ' ' + data.data3[0].LName), 31);
+}
+function AFaaaaaaViewClick() {
+    // $("#F00aaaaaa, #companypersonaaaaaa").addClass("d-none"); $("#S00aaaaaa, #I00aaaaaa").removeClass("d-none");
+}
+function AFaaaaaaSetToInput(f, d, m) {
+    // basedtaaaaaa = d;
+    // headeraaaaaa();
+
+    // let maaaaaa = cAccountMenu["faaaaaa"];
+    // if(maaaaaa.pro == undefined) {
+    //     $("#formsaaaaaa [data-f^=318], #formsaaaaaa [data-f^=428], #formsaaaaaa [data-f^=309]").removeClass('d-none');
+    //     if(maaaaaa.cp) 
+    //         if("aaaaaa" == "000474") 
+    //             $("#formsaaaaaa [data-f^=318], #formsaaaaaa [data-f^=428]").addClass('d-none');
+    //         else     
+    //             $("#formsaaaaaa [data-f^=428], #formsaaaaaa [data-f^=309]").addClass('d-none');
+    //     else 
+    //         if(unstr(d.AadharNo) == '')
+    //             $("#formsaaaaaa [data-f^=318]").addClass('d-none');
+    //         else 
+    //             $("#formsaaaaaa [data-f^=428], #formsaaaaaa [data-f^=309]").addClass('d-none');
+    // } else {
+    //     if(unstr(d.AadharNo) == '')
+    //         $("#formsaaaaaa [data-f^=318]").addClass('d-none');
+    //     else 
+    //         $("#formsaaaaaa [data-f^=428], #formsaaaaaa [data-f^=309]").addClass('d-none');
+    // }
+    // AFaaaaaaViewClick();
+    // $('.loadpage:not(.d-none)', "#S00aaaaaa").each(function () { 
+    //     $(this).data("container", "#" + this.id);
+    //     $(this).html(''); loadPage($(this), this); 
+    // });
+}
+
+class MultiStepWizard extends HTMLElement {
+    constructor() {
+        super();
+        this.code = this.id.split('_')[1];
+        this.currentStepIndex = 0; // Start at the first step
+
+        this.innerHTML = `
+            <div class="row g-4 wizard-container">
+                <div class="col-12 col-lg-3">
+                    <nav class="sticky-top vnav shadow z-0">
+                        <div class="card border-0 shadow mb-3">
+                            <div id="headNavigation_aaaaaa" class="headNavigation card-header">
+                            </div>
+                            <div id="navAccounts_aaaaaa" class="collapse navbar-collapse d-lg-block wizard-nav">
+                                <ul class="navbar-nav nav-pills flex-column wizardNavLinks" style="--bs-nav-link-padding-x:1rem;--bs-nav-pills-link-active-bg:var(--bs-secondary);">
+                                </ul>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+                <div class="col-12 col-lg-9 wizard-content">
+                    <div class="wizardSteps" id="showformsaaaaaa">
+                    </div>
+                    <div class="wizard-buttons d-flex ">
+                        <button class="prevBtn btn btn-outline-secondary border-0 icon-link"><i class="bi-chevron-left"></i><span>Previous</span></button>
+                        <button class="nextBtn btn btn-outline-primary border-0 icon-link ms-auto flex-row-reverse"><i class="bi-chevron-right"></i><span>Next</span></button>
+                        <button class="finishBtn btn btn-outline-success d-none">Finish</button>
+                    </div>
+                </div>
+            </div>
+        `.replace(/aaaaaa/g, this.code)
+
+        this.currentStepIndex = 0; // Start at the first step
+        this.linkRenderer = null; // New property to store the custom link rendering function
+        this.showHeader = null; // New property to get header html rendering function
+        // Get references to shadow DOM elements
+        this.wizardNavLinks = this.querySelector('.wizardNavLinks');
+        this.wizardSteps = this.querySelector('.wizardSteps');
+        this.prevBtn = this.querySelector('.prevBtn');
+        this.nextBtn = this.querySelector('.nextBtn');
+        this.finishBtn = this.querySelector('.finishBtn');
+        this.headNavigation = this.querySelector(".headNavigation");
+
+        // Initialize the wizard
+        //this.renderNavLinks();
+        //this.renderStepContent();
+        this.attachEventListeners();
+        this.updateUI(); // Set initial state
+    }
+    connectedCallback() {
+    }
+    /**
+     * Renders the navigation links on the left side of the wizard.
+     */
+    renderNavLinks() {
+        debugger;
+        this.wizardNavLinks.innerHTML = ''; // Clear existing links
+        if(typeof this.linkRenderer === 'function') {
+            this.wizardNavLinks.innerHTML = this.linkRenderer();
+        }
+        this.headNavigation.innerHTML = "";
+        if(typeof this.showHeader === 'function') {
+            this.headNavigation.innerHTML = this.showHeader();
+        }
+    }
+
+    /**
+     * Renders the content divs for each step on the right side.
+     */
+    renderStepContent() {
+        this.wizardSteps.innerHTML = ''; // Clear existing content
+        this.stepsData.forEach((step, index) => {
+            // const div = document.createElement('div');
+            // div.classList.add('wizard-step');
+            // div.setAttribute('role', 'tabpanel'); // ARIA role for accessibility
+            // div.setAttribute('aria-labelledby', `step-link-${step.id}`); // Link to nav item
+            // div.setAttribute('id', `step-content-${step.id}`);
+
+            // const h2 = document.createElement('h2');
+            // h2.classList.add('mb-3', 'text-primary');
+            // h2.textContent = step.title;
+
+            // const p = document.createElement('p');
+            // p.classList.add('text-secondary', 'fs-5');
+            // p.textContent = step.content;
+
+            // div.appendChild(h2);
+            // div.appendChild(p);
+            // this.wizardSteps.appendChild(div);
+        });
+    }
+
+    /**
+     * Attaches event listeners to navigation links and buttons.
+     */
+    attachEventListeners() {
+        // Event listener for navigation links
+        this.wizardNavLinks.addEventListener('click', (event) => {
+            event.preventDefault(); // Prevent page refresh
+            const targetLink = event.target.closest('.nav-link');
+            if (targetLink) {
+                const stepIndex = parseInt(targetLink.dataset.stepIndex, 10);
+                this.showStep(stepIndex);
+            }
+        });
+
+        // Event listeners for Previous, Next, and Finish buttons
+        this.prevBtn.addEventListener('click', () => this.previousStep());
+        this.nextBtn.addEventListener('click', () => this.nextStep());
+        this.finishBtn.addEventListener('click', () => this.finishWizard());
+    }
+
+    /**
+     * Displays a specific step and updates the UI.
+     * @param {number} index - The index of the step to show.
+     */
+    showStep(index) {
+        if (index >= 0 && index < this.stepsData.length) {
+            this.currentStepIndex = index;
+            this.updateUI();
+        }
+    }
+
+    /**
+     * Moves the wizard to the next step.
+     */
+    nextStep() {
+        if (this.currentStepIndex < this.stepsData.length - 1) {
+            this.currentStepIndex++;
+            this.updateUI();
+        }
+    }
+
+    /**
+     * Moves the wizard to the previous step.
+     */
+    previousStep() {
+        if (this.currentStepIndex > 0) {
+            this.currentStepIndex--;
+            this.updateUI();
+        }
+    }
+
+    /**
+     * Updates the UI based on the current step:
+     * - Activates the current navigation link.
+     * - Shows the current step content.
+     * - Manages button visibility (Previous, Next, Finish).
+     */
+    updateUI() {
+        // Update navigation links
+        // this.wizardNavLinks.querySelectorAll('.nav-link').forEach((link, index) => {
+        //     if (index === this.currentStepIndex) {
+        //         link.classList.add('active');
+        //         link.setAttribute('aria-current', 'step');
+        //     } else {
+        //         link.classList.remove('active');
+        //         link.removeAttribute('aria-current');
+        //     }
+        // });
+
+        // Update step content visibility
+        // this.wizardSteps.querySelectorAll('.wizard-step').forEach((stepDiv, index) => {
+        //     if (index === this.currentStepIndex) {
+        //         stepDiv.classList.add('active');
+        //     } else {
+        //         stepDiv.classList.remove('active');
+        //     }
+        // });
+
+        // Manage button visibility
+        let alinks = this.wizardNavLinks.querySelectorAll("li").length;
+        this.prevBtn.classList.toggle('d-none', this.currentStepIndex === 0);
+        this.nextBtn.classList.toggle('d-none', this.currentStepIndex === alinks - 1);
+        this.finishBtn.classList.toggle('d-none', this.currentStepIndex !== alinks - 1);
+    }
+
+    /**
+     * Handles the "Finish" action when the wizard is completed.
+     */
+    finishWizard() {
+        // In a real application, you would send data to a server or perform final actions here.
+        alert('Wizard Finished! Data can now be processed.');
+        console.log('Wizard finished. Current step data:', this.stepsData[this.currentStepIndex]);
+        // Optionally reset the wizard or redirect
+        this.currentStepIndex = 0; // Reset to first step for demo purposes
+        this.updateUI();
+    }
+}
+
+// Define the multi step wizard element
+if(!customElements.get('multi-step-wizard'))
+    customElements.define('multi-step-wizard', MultiStepWizard);
+
+// --- How to use the custom link renderer ---
+// Get a reference to your wizard component after it's defined
+var AcWizard_aaaaaa = document.getElementById('AcWizard_aaaaaa');
+
+// Define your custom link rendering function
+if (AcWizard_aaaaaa) {
+    AcWizard_aaaaaa.linkRenderer = function() {
+        let maaaaaa = cAccountMenu["faaaaaa"];
+        let rhtml = "";
+        cAccountSubMneu.forEach((step, index) => {
+            if(maaaaaa.m.search("`" + step.f.split("`")[0]) < 0) {
+            } else {
+                rhtml += `
+                    <li class="nav-item">
+                        <a class="nav-link" id="${step.i}${Math.random()}_aaaaaa" data-href="#${step.i}_aaaaaa" data-f="${step.f}" data-title="${step.l}" data-container="#showformsaaaaaa">${step.l}</a>
+                    </li>
+                    `;
+            }
+        });
+        // This function receives the step data and its index
+        // It should return the string you want to display for the link
+        return rhtml; 
+    };
+    // Re-render the navigation links with the new renderer
+    // This is important if the component has already rendered its initial links
+    AcWizard_aaaaaa.renderNavLinks();
+    AcWizard_aaaaaa.updateUI(); // Ensure active state is correctly set after re-rendering
+    AcWizard_aaaaaa.showHeader = function() {
+        const imgsrc = `[AImageAPI][AImagePath]${basedtaaaaaa.NId}/id1--100.jpg?v=${Math.random()}`;
+        const uname = `${unstr(basedtaaaaaa.FName)} ${unstr(basedtaaaaaa.LName)}`;
+
+    // $("#useraaaaaa img", "#ACaaaaaa").attr('src', );
+    // $("#useraaaaaa figcaption div:first-child", "#ACaaaaaa").html();
+
+        let rhtml = `
+            <figure id="useraaaaaa" class="hstack gap-2 navbar-toggler mb-0" style="cursor:pointer;"  data-bs-toggle="collapse" data-bs-target="#navAccounts_aaaaaa" aria-controls="navAccounts_aaaaaa" aria-expanded="false" aria-label="Toggle navigation">
+                <div>
+                    <img src="_Adhvik/img/user.svg" onerror="this.src='_Adhvik/img/user.svg';" alt="User" style="width:60px;height:60px;" class="img-thumbnail " />
+                </div>
+                <figcaption>
+                    <div class="mb-0">${uname}</div>
+                </figcaption>
+            </figure>
+            `;
+        return rhtml;
+    };
+}
+function AFaaaaaaEDClick($c, v, dr) {
+    if(v == "edit") {
+        $(".viewaaaaaa, #formsaaaaaa, #showformsaaaaaa", $c).html('');
+        $("#useraaaaaa").data("aid", $(".AccountId", dr).text());
+        let firstcontrolaaaaaa = $("a.nav-link:first", "#navAccounts_aaaaaa .navbar-nav");
+        firstcontrolaaaaaa.data("f", firstcontrolaaaaaa.data("f").replace("`a`", "`i`"));
+        firstcontrolaaaaaa.trigger("click");
+        //$("#prevaaaaaa").hide();
+    }
+}
+function AFaaaaaaNew(f) {
+    let firstcontrolaaaaaa = $("a.nav-link:first", "#navAccounts_aaaaaa .navbar-nav");
+    firstcontrolaaaaaa.data("f", firstcontrolaaaaaa.data("f").replace("`i`", "`a`"));
+    //firstcontrolaaaaaa.addClass("active");
+    // let formch = $(firstcontrolaaaaaa.data("href"));
+    // formch.data("f", formch.data("f").replace("`i`", "`a`"));
+    firstcontrolaaaaaa.trigger("click");
+    //$("#prevaaaaaa").hide();
+}
+
+/*
+        $("#F00aaaaaa").data("uparent", "AccountTypeIds=" + maaaaaa.c); 
+        if(basedtaaaaaa != undefined) {
+            headeraaaaaa();
+        }
+
+
+
+*/
+
+
+<section id="S00aaaaaa" class="d-none">
+    <div class="row g-4">
+        <div class="col-12 col-lg-3">
+            <nav class="sticky-top vnav shadow z-0">
+                <div class="card border-0 shadow mb-3">
+                    <div class="card-header">
+                        <figure id="curuseraaaaaa" class="hstack gap-2 navbar-toggler mb-0" style="cursor:pointer;"  data-bs-toggle="collapse" data-bs-target="#navAccount_aaaaaa" aria-controls="navAccount_aaaaaa" aria-expanded="false" aria-label="Toggle navigation">
+                            <div>
+                                <img src="_Adhvik/img/user.svg" onerror="this.src=`_Adhvik/img/user.svg`;" alt="User" style="width:60px;height:60px;" class="img-thumbnail " />
+                            </div>
+                            <figcaption>
+                                <div class="mb-0">User Name</div>
+                            </figcaption>
+                        </figure>
+                    </div>
+                    <div class="collapse navbar-collapse d-lg-block" id="navAccount_aaaaaa">
+                        <ul class="navbar-nav nav-pills" style="--bs-nav-link-padding-x:1rem;--bs-nav-pills-link-active-bg:var(--bs-secondary);">
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <div class="col-12 col-lg-9">
+            <div id="formsaaaaaa">
+            </div>
+            <div class="d-flex">
+                <button type="button" id="prevaaaaaa" class="btn btn-outline-secondary border-0 icon-link" title="Previous" value="prev" onclick="AFaaaaaaPN(this);"><i class="bi-chevron-left"></i><span>Previous</span></button>
+                <button type="button" id="nextaaaaaa" class="btn btn-outline-secondary border-0 icon-link ms-auto flex-row-reverse" title="Next" value="next" onclick="AFaaaaaaPN(this);"><i class="bi-chevron-right"></i><span>Next</span></button>
+            </div>
+        </div>
+    </div>
+</section>
+
+---------------------------------------------------- Address code
+var pformaaaaaa = "";
+
+function AFaaaaaaParent(p0f) {
+    pformaaaaaa = p0f;
+}
+function AFaaaaaaSetToInput(f, d, m) {
+}
+
+$(function() {
+    // aifetchf("", '1-o-F099022``', 'he', 90, function (data) {
+    //     $('#taaaaaaCountryId').html('<option value="" data-states="">-Select Country-</option>').append(data);
+    // }, false, undefined, "8");
+    try {
+    pformaaaaaa = $("#ACaaaaaa").data("parent").split("_");
+    if(pformaaaaaa.length > 0) {
+        //var pformidaaaaaa = pformaaaaaa.prevObject[0].id.split('_');
+        pardtaaaaaa = window["basedt" + pformaaaaaa[1]]; //.data3[0];
+        $("#naaaaaaAccountId").attr("value", pardtaaaaaa.AccountId);
+        if("aaaaaa" == "000227") {
+            pardt1aaaaaa = window["basedt" + pformaaaaaa[1]].APAddress[0];
+        } else if("aaaaaa" == "000320") {
+            pardt1aaaaaa = window["basedt" + pformaaaaaa[1]].ACAddress[0];
+        } else if("aaaaaa" == "000450") {
+            pardt1aaaaaa = window["basedt" + pformaaaaaa[1]].AFAddress[0];
+        } else if("aaaaaa" == "000473") {
+            pardt1aaaaaa = window["basedt" + pformaaaaaa[1]].AFAddress[0];
+        }
+        SetToInput($("#F00aaaaaa"), pardt1aaaaaa, '');
+    }
+    } catch (error) {
+
+    }
+
+    if("aaaaaa" == "000227") {
+        $("#naaaaaaAddressTypeId").attr("value", 1); // Communication 
+    } else if("aaaaaa" == "000320") {
+        $("#naaaaaaAddressTypeId").attr("value", 2); // Permanent
+    } else if("aaaaaa" == "000450") {
+        $("#naaaaaaAddressTypeId").attr("value", 3); // Playing Address
+    } else if("aaaaaa" == "000473") {
+        $("#naaaaaaAddressTypeId").attr("value", 4); // Playing Address
+    }
+    getLocation();
+});
+
+$('#taaaaaaCountryId').change(function (d) {
+    var sts = '<option>' + $(this).find(':selected').data('states').replace(/,/g, '</option><option>') + '</option>';
+    $('#taaaaaaStateId').html('<option value="">-Select State-</option>').append(sts);
+});
+function AFaaaaaaSetToInput(f,d,m) {
+    $("#naaaaaaPostalCode").trigger('blur');
+}
+
+$(document).off("blur", "#naaaaaaPostalCode").on("blur", "#naaaaaaPostalCode", function () {
+    if ($(this).val().length <= 1) return;
+
+    //var fc = $(this).attr("id").substr(1, 6); var fcp = $(this).attr("id").substr(7, 1);
+    $.get('https://api.postalpincode.in/pincode/' + $(this).val(), function (data) {
+        if (data[0].Status == "Error") {
+            toastr["error"](data[0].Message);
+            return;
+        }
+        var alca = $(`#taaaaaaLAddress`).val(), acd = $("#taaaaaaDistrictId").val(), atca = $("#taaaaaaTalukaId").val();
+        //$("#t"+fc+""+fcp+"District").html('<option value="">-Select District-</option>');
+        //$("#t"+fc+"Town"+fcp+"Address").html('<option value="">-Select Taluka-</option>');
+        $("#taaaaaaDistrictId").html('');
+        $("#taaaaaaTalukaId").html('');
+        for (i = 0; i <= data[0].PostOffice.length - 1; i++) {
+            $("#laaaaaaLAddress").append('<option value="' + data[0].PostOffice[i].Name + '">' + data[0].PostOffice[i].Name + '</option>');
+            $("#taaaaaaDistrictId").append('<option value="' + data[0].PostOffice[i].District + '">' + data[0].PostOffice[i].District + '</option>');
+            $("#taaaaaaTalukaId").append('<option value="' + data[0].PostOffice[i].Block + '">' + data[0].PostOffice[i].Block + '</option>');
+            if (i == 0) {
+                $("#taaaaaaCountryId").val(data[0].PostOffice[i].Country).trigger('change');
+                $("#taaaaaaStateId").val(data[0].PostOffice[i].State);
+            }
+        }
+
+        $("#taaaaaaTalukaId option").val(function (idx, val) {
+            if (idx != 0) {
+                $(this).siblings(':contains("' + val + '")').remove(); return val;
+            } else return val;
+        });
+        $("#taaaaaaDistrictId option").val(function (idx, val) {
+            if (idx != 0) {
+                $(this).siblings(':contains("' + val + '")').remove(); return val;
+            }
+            else return val;
+        });
+        if (unstr(alca) != '') $("#taaaaaaLAddress").val(alca);
+        if (unstr(acd) != '') $("#taaaaaaDistrictId").val(acd);
+        if (unstr(atca) != '') $("#taaaaaaTalukaId").val(atca);
+    });
+});
+
+var x = document.getElementById("taaaaaaGeoLocation");
+
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition);
+    }
+    else {
+        x.value = "Geolocation is not supported by this browser.";
+    }
+}
+
+function showPosition(position) {
+    let y = position.coords.latitude + "," + position.coords.longitude;
+    if(x.value == '')
+        x.value = y;
+}
+
+---------------------- Aadhar PAN
+// $(function() {
+//     reloadaaaaaa();
+// });
+// function reloadaaaaaa() {
+//     pformaaaaaa = $("#ACaaaaaa").data("parent").split("_");
+//     if(pformaaaaaa.length > 1) {
+//         let aid = $("#user" + pformaaaaaa[1]).data("aid");
+//         let nid = $("#user" + pformaaaaaa[1]).data("nid");
+//         let tconditaaaaaa = `a.AccountId=${aid}`;
+//         //dimgaaaaaa.src = `https://swayam.net.in/uac/${pardtaaaaaa.NId}/id1--480.jpg?v=1.0`;
+//         $("#paaaaaaAccountId").attr("value", aid);
+//         $("#taaaaaaNId").attr("value", nid);
+//         tconditaaaaaa += ` AND a.NId = '${nid}'`;
+//         $(".tcond", "#td0aaaaaa .aitoolbar").attr("value", tconditaaaaaa);
+
+//         // let d = {"data1": [{"i":1, "NId": pardtaaaaaa.NId, "f": "AadharF", "v": Math.random() },{"i":2, "NId": pardtaaaaaa.NId, "f": "AadharB", "v": Math.random() },{"i":3, "NId": pardtaaaaaa.NId, "f": "PANF", "v": Math.random() },{"i":4, "NId": pardtaaaaaa.NId, "f": "PANB", "v": Math.random() }]};
+//         let t01aaaaaa = $("#tmi00aaaaaa").html();
+//         let outputaaaaaa = "";
+//         debugger;
+//         for(const i in daaaaaa.data1) {
+//             daaaaaa.data1[i].NId = nid;
+//             outputaaaaaa += aiTemplate(t01aaaaaa, daaaaaa.data1[i]);
+//         }
+//         $("#showimagesaaaaaa").html(outputaaaaaa);
+//     }
+// }
+// function DataRefreshaaaaaa(d) {
+//     var hlppartials = {};
+//     var t01aaaaaa = $('#tm0aaaaaa').html();
+//     var info01aaaaaa = Handlebars.compile(t01aaaaaa);
+//     Handlebars.registerHelper(hlpfunctions);
+//     Handlebars.registerPartial(hlppartials);
+//     $('#tb0aaaaaa').html(info01aaaaaa(d));
+// }
+
+
+ -->

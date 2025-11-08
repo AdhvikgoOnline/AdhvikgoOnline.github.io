@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPI Link Generator (Bootstrap)</title>
+    <!-- Load Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        /* Custom styling for the simulated response box */
+        #responseBox {
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .upi-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-light d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+
+    <div class="container py-4">
+        <div class="card shadow-lg p-4 p-md-5 mx-auto" style="max-width: 550px;">
+            <h1 class="h3 fw-bold text-primary mb-5 text-center">
+                <svg class="upi-icon text-primary align-text-bottom" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2-3 .895-3 2 1.343 2 3 2m-3 2h6m-9 1h12a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                UPI Payment Link Generator
+            </h1>
+
+            <form id="upiForm" class="mb-4">
+                <!-- VPA Input -->
+                <div class="mb-3">
+                    <label for="vpa" class="form-label text-muted">Recipient VPA (Virtual Payment Address)</label>
+                    <input type="text" id="vpa" value="user@bankname" required class="form-control" placeholder="e.g., recipient@bankname">
+                </div>
+
+                <!-- Recipient Name Input -->
+                <div class="mb-3">
+                    <label for="name" class="form-label text-muted">Recipient Name</label>
+                    <input type="text" id="name" value="Demo Merchant" required class="form-control" placeholder="e.g., John Doe">
+                </div>
+
+                <!-- Amount Input -->
+                <div class="mb-3">
+                    <label for="amount" class="form-label text-muted">Amount (INR)</label>
+                    <input type="number" id="amount" value="10.00" step="0.01" required class="form-control" placeholder="e.g., 500.50">
+                </div>
+
+                <!-- Note/Remark Input -->
+                <div class="mb-4">
+                    <label for="note" class="form-label text-muted">Note / Transaction Remark (tn)</label>
+                    <input type="text" id="note" value="Order 1234 payment" class="form-control" placeholder="e.g., For groceries">
+                </div>
+
+                <button type="submit" id="generateButton" class="btn btn-success btn-lg w-100 shadow">
+                    Generate UPI Link & QR Code
+                </button>
+            </form>
+
+            <!-- Output Section -->
+            <div id="outputSection" class="pt-4 border-top border-secondary-subtle hidden">
+                <h2 class="h5 fw-bold text-dark mb-4 text-center">Payment Details</h2>
+
+                <!-- QR Code Display -->
+                <div class="d-flex flex-column align-items-center justify-content-center mb-4 p-3 bg-light rounded-3 border">
+                    <p class="small fw-semibold text-primary mb-2">Scan the QR Code to Pay</p>
+                    <img id="qrCode" class="img-fluid rounded shadow-sm mb-3" style="width: 150px; height: 150px;" alt="Generated UPI QR Code">
+                    
+                    <a id="paymentLink" href="#" target="_blank" class="text-info small text-break text-center bg-light p-2 rounded-3 border border-info-subtle d-block"></a>
+                    
+                    <button onclick="copyToClipboard('paymentLink')" class="btn btn-sm btn-outline-primary mt-3">
+                        Copy Link
+                    </button>
+                </div>
+
+                <!-- Payment Simulation Section -->
+                <div class="mt-4">
+                    <h3 class="h6 fw-semibold text-dark mb-3">Simulated Payment Status</h3>
+                    <div id="responseBox" class="rounded-3 border border-dashed border-secondary text-secondary fw-medium p-3 bg-white">
+                        Click "Simulate Response" after scanning the QR or opening the link.
+                    </div>
+                    <div class="d-flex gap-3 mt-3">
+                        <button onclick="openUpiLink()" class="btn btn-primary w-50 shadow-sm">
+                            Open Link (Mobile)
+                        </button>
+                        <button onclick="simulatePaymentResponse()" class="btn btn-warning w-50 shadow-sm">
+                            Simulate Response
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+        // Global variables for Firebase configuration (Mandatory for Canvas)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+
+        // --- Utility Functions ---
+
+        /**
+         * Generates a unique Transaction ID (TID) and Reference ID (TR) for UPI.
+         * UPI limits TID/TR to 35 characters.
+         */
+        const generateTxnId = () => {
+            const timestamp = Date.now().toString(36);
+            const random = Math.random().toString(36).substring(2, 8);
+            // Ensure the length does not exceed 35 characters as per UPI spec
+            return (appId.substring(0, 5) + timestamp + random).substring(0, 35).toUpperCase();
+        };
+
+        /**
+         * Copies the content of an element to the clipboard and logs a status message.
+         * @param {string} elementId - The ID of the element whose text to copy.
+         */
+        const copyToClipboard = (elementId) => {
+            const textToCopy = document.getElementById(elementId).innerText;
+            try {
+                // Use execCommand('copy') for better compatibility in iframe environments
+                const textarea = document.createElement('textarea');
+                textarea.value = textToCopy;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                console.log('Link copied to clipboard! [success]');
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                console.log('Failed to copy link. Please copy manually. [danger]');
+            }
+        };
+
+        // --- Core Application Logic ---
+
+        let generatedUpiLink = '';
+
+        /**
+         * Constructs the UPI deep link URI and updates the UI.
+         */
+        const generateUpiLink = (e) => {
+            e.preventDefault();
+
+            const vpa = document.getElementById('vpa').value.trim();
+            const name = document.getElementById('name').value.trim();
+            const amount = parseFloat(document.getElementById('amount').value.trim()).toFixed(2);
+            const note = document.getElementById('note').value.trim();
+            const txnId = generateTxnId();
+            const refId = txnId; // Using the same for reference ID for simplicity
+            const currency = 'INR';
+
+            if (!vpa || isNaN(amount) || amount <= 0) {
+                console.log('Please enter a valid VPA and amount. [danger]');
+                return;
+            }
+
+            // UPI URI Format: upi://pay?pa={VPA}&pn={Name}&tid={TxnId}&tr={RefId}&am={Amount}&cu={Currency}&tn={Note}
+            // Note: URLSearchParams handles encoding automatically.
+
+            const params = new URLSearchParams({
+                pa: vpa,
+                pn: name.replace(/[^a-zA-Z0-9.\- ]/g, '').substring(0, 50), 
+                tid: txnId, 
+                tr: refId,  
+                am: amount,
+                cu: currency,
+                tn: note.replace(/[^a-zA-Z0-9.\- ]/g, '').substring(0, 50), 
+            });
+
+            // The 'pay' action is the standard
+            generatedUpiLink = 'upi://pay?' + params.toString();
+            
+            // --- Update UI ---
+            const linkElement = document.getElementById('paymentLink');
+            const qrCodeElement = document.getElementById('qrCode');
+            const outputSection = document.getElementById('outputSection');
+            const responseBox = document.getElementById('responseBox');
+            
+            // 1. Display the link
+            linkElement.textContent = generatedUpiLink;
+            linkElement.href = generatedUpiLink;
+            console.log('Generated UPI Link:', generatedUpiLink);
+
+            // 2. Generate QR Code Image URL 
+            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(generatedUpiLink)}`;
+            qrCodeElement.src = qrApiUrl;
+            qrCodeElement.onerror = () => {
+                // Placeholder image for error
+                qrCodeElement.src = `https://placehold.co/150x150/cccccc/000000?text=QR+Error`;
+            };
+
+            // 3. Show the output section and reset simulation status
+            outputSection.classList.remove('hidden');
+            responseBox.innerHTML = 'Click "Simulate Response" after scanning the QR or opening the link.';
+            responseBox.classList.remove('bg-success-subtle', 'text-success', 'bg-danger-subtle', 'text-danger', 'bg-info-subtle', 'text-info');
+            responseBox.classList.add('bg-white', 'text-secondary');
+            console.log('UPI Link successfully generated! [success]');
+        };
+
+        /**
+         * Opens the generated UPI link. This is primarily useful on mobile devices.
+         */
+        const openUpiLink = () => {
+            if (!generatedUpiLink) {
+                console.log('Please generate a link first. [danger]');
+                return;
+            }
+            // Opening the deep link will attempt to open a UPI app on the device.
+            window.location.href = generatedUpiLink;
+            console.log('Attempting to open UPI app... [info]');
+        };
+
+        /**
+         * SIMULATES the backend receiving a webhook/callback response.
+         */
+        const simulatePaymentResponse = () => {
+            const responseBox = document.getElementById('responseBox');
+            
+            if (!generatedUpiLink) {
+                console.log('Generate a payment link first. [danger]');
+                return;
+            }
+            
+            // Set loading state (using Bootstrap spinner)
+            responseBox.innerHTML = `
+                <div class="d-flex align-items-center text-info">
+                    <div class="spinner-border spinner-border-sm me-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    Waiting for payment confirmation (Simulated delay)...
+                </div>
+            `;
+            responseBox.classList.remove('bg-success-subtle', 'text-success', 'bg-danger-subtle', 'text-danger', 'bg-white', 'text-secondary');
+            responseBox.classList.add('bg-info-subtle', 'text-info');
+            console.log('Simulating payment confirmation...');
+
+
+            // Simulate network latency and response time (3 seconds)
+            setTimeout(() => {
+                // Randomly decide success or failure (70% success rate)
+                const isSuccess = Math.random() > 0.3;
+                
+                // Extract the Reference ID (tr) from the generated link for the response
+                const refIdMatch = generatedUpiLink.match(/tr=([^&]+)/);
+                const txnRefId = refIdMatch ? refIdMatch[1] : 'SIMU12345';
+                const simulatedUpiTxnId = 'UPI' + Date.now().toString(36).toUpperCase();
+
+                if (isSuccess) {
+                    const successMessage = `
+                        <div class="text-success">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-check-circle-fill me-1" viewBox="0 0 16 16">
+                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.429 10.102 5.47 8.152a.75.75 0 0 0-1.04-.018z"/>
+                            </svg>
+                            <p class="fw-bold mb-1">Payment SUCCESS!</p>
+                            <p class="small mb-0">Ref ID (tr): ${txnRefId}</p>
+                            <p class="small mb-0">UPI Txn ID: ${simulatedUpiTxnId}</p>
+                        </div>
+                    `;
+                    responseBox.innerHTML = successMessage;
+                    responseBox.classList.remove('bg-info-subtle', 'text-info', 'bg-danger-subtle', 'text-danger');
+                    responseBox.classList.add('bg-success-subtle', 'text-success');
+                    console.log(`Payment SUCCESS! Ref ID: ${txnRefId}, UPI Txn ID: ${simulatedUpiTxnId}`);
+
+                } else {
+                    const failureMessage = `
+                        <div class="text-danger">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x-circle-fill me-1" viewBox="0 0 16 16">
+                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.354a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708z"/>
+                            </svg>
+                            <p class="fw-bold mb-1">Payment FAILED or PENDING.</p>
+                            <p class="small mb-0">Reason: User cancelled or transaction timeout.</p>
+                            <p class="small mb-0">Ref ID (tr): ${txnRefId}</p>
+                        </div>
+                    `;
+                    responseBox.innerHTML = failureMessage;
+                    responseBox.classList.remove('bg-info-subtle', 'text-info', 'bg-success-subtle', 'text-success');
+                    responseBox.classList.add('bg-danger-subtle', 'text-danger');
+                    console.log(`Payment FAILED or PENDING. Ref ID: ${txnRefId}`);
+                }
+            }, 3000); // 3 second delay for simulation
+        };
+
+        // Attach event listener to the form
+        document.getElementById('upiForm').addEventListener('submit', generateUpiLink);
+
+    </script>
+</body>
+</html>

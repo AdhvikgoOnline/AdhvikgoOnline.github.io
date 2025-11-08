@@ -15,3 +15,4 @@ LEFT OUTER JOIN (SELECT *, ROW_NUMBER() OVER (PARTITION BY MenuId ORDER BY Accou
 
 136_111
 , CAST(a.TotalViews AS bigint) desc
+

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knockout Draw</title>
+    <style>
+        /* General Styling */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        .bracket-container {
+            /* Use Flexbox to align the stages (rounds) horizontally */
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            /* Vertically center the rounds */
+            justify-content: center;
+            overflow-x: auto;
+            /* Allows scrolling for large draws */
+            padding: 20px 0;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Stage (Round) Container */
+        .stage {
+            /* Holds all matches for a single round */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            padding: 10px 30px;
+            /* Horizontal padding for spacing between rounds */
+            min-width: 160px;
+            /* Ensures space for player names */
+        }
+
+        /* Match Container */
+        .match {
+            margin: 15px 0;
+            position: relative;
+            /* Essential for positioning the lines */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Player/Score Box */
+        .player-box {
+            background-color: #e3f2fd;
+            /* Light blue */
+            border: 1px solid #90caf9;
+            padding: 6px 10px;
+            margin: 2px 0;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 140px;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .player-box.winner {
+            background-color: #c8e6c9;
+            /* Light green for the winner */
+            border-color: #66bb6a;
+            font-weight: bold;
+        }
+
+        /* === CSS for Connecting Lines (The core trick) === */
+        .match::before,
+        .match::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            background-color: #333;
+        }
+
+        /* Horizontal line extending from the match */
+        .match::before {
+            width: 20px;
+            height: 1px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Vertical line connecting pairs of matches */
+        /* We target every odd-numbered match element to draw the vertical line up/down */
+        .stage:not(:last-child) .match:nth-child(odd) {
+            border-right: 1px solid #333;
+            /* Vertical line */
+            /* Adjust height and position of the match to create the visual connection space */
+            padding-bottom: 30px;
+            margin-bottom: 0;
+        }
+
+        /* Adjust the vertical position of the line for the match that receives the winner */
+        .stage:not(:last-child) .match:nth-child(odd)::after {
+            /* The horizontal line that extends to the next round */
+            width: 30px;
+            height: 1px;
+            top: calc(100% + 15px);
+            /* Position it halfway between the two matches in the pair */
+        }
+
+        /* Clean up the final round (since it has no next round) */
+        .stage:last-child .match::before,
+        .stage:last-child .match:nth-child(odd) {
+            border-right: none;
+            padding-bottom: 0;
+            margin-bottom: 15px;
+        }
+
+        .stage:last-child .match:nth-child(odd)::after {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Tournament Draw (8 Players)</h1>
+
+    <div id="bracket-container" class="bracket-container">
+    </div>
+
+    <script>
+        function generateKnockoutDraw(playerCount) {
+            const container = document.getElementById('bracket-container');
+            if (!container) return;
+
+            // Define initial players (can be customized)
+            const initialPlayers = Array.from({ length: playerCount }, (_, i) => `Player ${i + 1}`);
+
+            // Find the number of rounds (log2 of the player count)
+            const numRounds = Math.log2(playerCount);
+            if (numRounds % 1 !== 0) {
+                // Handle non-power-of-2 numbers with Byes in a real scenario
+                // For simplicity, we'll only generate for powers of 2 (4, 8, 16, etc.)
+                container.innerHTML = `<p>Please use a player count that is a power of 2 (e.g., 4, 8, 16) for this basic example.</p>`;
+                return;
+            }
+
+            let currentMatches = playerCount / 2;
+            let roundHtml = '';
+            let matchCounter = 0;
+
+            // Loop through each round
+            for (let round = 1; round <= numRounds; round++) {
+                let stageContent = '';
+
+                for (let i = 0; i < currentMatches; i++) {
+                    matchCounter++;
+                    let player1, player2;
+
+                    if (round === 1) {
+                        // Populate first round with initial player names
+                        player1 = initialPlayers[i * 2];
+                        player2 = initialPlayers[i * 2 + 1];
+                    } else if (round === numRounds) {
+                        // Final round
+                        player1 = 'Winner Semi-final 1';
+                        player2 = 'Winner Semi-final 2';
+                    } else {
+                        // Subsequent rounds use placeholders
+                        player1 = `Winner R${round - 1} M${(i * 2) + 1}`;
+                        player2 = `Winner R${round - 1} M${(i * 2) + 2}`;
+                    }
+
+                    stageContent += `
+                <div class="match match-${matchCounter}">
+                    <div class="player-box">${player1}</div>
+                    <div class="player-box">${player2}</div>
+                </div>
+            `;
+                }
+
+                roundHtml += `<div class="stage round-${round}">
+                          <h2>R${round}</h2>
+                          ${stageContent}
+                      </div>`;
+
+                currentMatches /= 2;
+            }
+
+            // Add a final 'Winner' stage
+            const winnerStage = `
+        <div class="stage final-stage">
+            <h2>Champion</h2>
+            <div class="match winner-match">
+                <div class="player-box winner">Tournament Champion</div>
+            </div>
+        </div>
+    `;
+
+            container.innerHTML = roundHtml + winnerStage;
+        }
+
+        // === Run the Generator ===
+        // Set the starting number of players here
+        const PLAYERS = 8;
+        generateKnockoutDraw(PLAYERS);
+    </script>
+
+</body>
+
+</html>

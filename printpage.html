@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Page Settings</title>
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        /* Custom styles for print media */
+        @media print {
+            /* Hide the print settings component itself when printing */
+            #print-settings-container {
+                display: none;
+            }
+
+            /* Ensure the main content takes full width */
+            body {
+                margin: 0;
+                padding: 0;
+                /* Removed background: none; and color: #000; to allow color printing */
+            }
+
+            /* Adjust font sizes for better readability on print */
+            h1, h2, h3, p {
+                font-size: 12pt; /* Example font size for print */
+            }
+
+            /* Show full URLs for links */
+            a::after {
+                content: " (" attr(href) ")";
+                font-size: 9pt;
+            }
+
+            /* Control page breaks */
+            .page-break-before {
+                page-break-before: always;
+            }
+            .page-break-after {
+                page-break-after: always;
+            }
+            .page-break-inside-avoid {
+                page-break-inside: avoid;
+            }
+
+            /* Default @page rule */
+            @page {
+                size: A4 portrait; /* Default for A4 portrait */
+                margin: 1cm; /* Default margin */
+            }
+
+            /* Dynamically set page size and orientation based on data attributes */
+            /* NOTE: Browser support for dynamically changing 'size' and 'orientation'
+               via JavaScript-controlled data attributes in @page rules can be inconsistent.
+               Users may still need to manually select these in the browser's print dialog. */
+            body[data-print-size="A4"][data-print-orientation="portrait"] @page {
+                size: A4 portrait;
+            }
+            body[data-print-size="A4"][data-print-orientation="landscape"] @page {
+                size: A4 landscape;
+            }
+            body[data-print-size="Letter"][data-print-orientation="portrait"] @page {
+                size: Letter portrait;
+            }
+            body[data-print-size="Letter"][data-print-orientation="landscape"] @page {
+                size: Letter landscape;
+            }
+            body[data-print-size="Legal"][data-print-orientation="portrait"] @page {
+                size: Legal portrait;
+            }
+            body[data-print-size="Legal"][data-print-orientation="landscape"] @page {
+                size: Legal landscape;
+            }
+
+            /* New: Envelope Sizes */
+            body[data-print-size="DL"][data-print-orientation="portrait"] @page {
+                size: 110mm 220mm portrait; /* DL Envelope: 110mm x 220mm */
+            }
+            body[data-print-size="DL"][data-print-orientation="landscape"] @page {
+                size: 220mm 110mm landscape; /* DL Envelope: 220mm x 110mm */
+            }
+            body[data-print-size="C5"][data-print-orientation="portrait"] @page {
+                size: 162mm 229mm portrait; /* C5 Envelope: 162mm x 229mm */
+            }
+            body[data-print-size="C5"][data-print-orientation="landscape"] @page {
+                size: 229mm 162mm landscape; /* C5 Envelope: 229mm x 162mm */
+            }
+            body[data-print-size="C4"][data-print-orientation="portrait"] @page {
+                size: 229mm 324mm portrait; /* C4 Envelope: 229mm x 324mm */
+            }
+            body[data-print-size="C4"][data-print-orientation="landscape"] @page {
+                size: 324mm 229mm landscape; /* C4 Envelope: 324mm x 229mm */
+            }
+            body[data-print-size="No10"][data-print-orientation="portrait"] @page {
+                size: 4.125in 9.5in portrait; /* No. 10 Commercial: 4.125in x 9.5in */
+            }
+            body[data-print-size="No10"][data-print-orientation="landscape"] @page {
+                size: 9.5in 4.125in landscape; /* No. 10 Commercial: 9.5in x 4.125in */
+            }
+
+            /* New: Cheque Size (example, actual size varies) */
+            body[data-print-size="Cheque"][data-print-orientation="portrait"] @page {
+                size: 6in 2.75in portrait; /* Generic Cheque: 6in x 2.75in */
+            }
+            body[data-print-size="Cheque"][data-print-orientation="landscape"] @page {
+                size: 2.75in 6in landscape; /* Generic Cheque: 2.75in x 6in */
+            }
+        }
+    </style>
+</head>
+<body class="bg-light p-4 d-flex flex-column align-items-center justify-content-center min-vh-100">
+
+    <!-- Print Page Settings Component -->
+    <div id="print-settings-container" class="card shadow-lg mb-4 w-100" style="max-width: 400px;">
+        <div class="card-body p-4">
+            <h2 class="card-title text-center mb-4">Print Page Settings</h2>
+
+            <!-- Page Size Selection -->
+            <div class="mb-3">
+                <label for="page-size" class="form-label fw-semibold">Select Page Size:</label>
+                <select id="page-size" class="form-select">
+                    <option value="A4">A4</option>
+                    <option value="Letter">Letter</option>
+                    <option value="Legal">Legal</option>
+                    <option value="DL">DL Envelope (110x220mm)</option>
+                    <option value="C5">C5 Envelope (162x229mm)</option>
+                    <option value="C4">C4 Envelope (229x324mm)</option>
+                    <option value="No10">No. 10 Envelope (4.125x9.5in)</option>
+                    <option value="Cheque">Cheque (Generic: 6x2.75in)</option>
+                </select>
+            </div>
+
+            <!-- Orientation Selection -->
+            <div class="mb-4">
+                <label for="orientation" class="form-label fw-semibold">Select Orientation:</label>
+                <select id="orientation" class="form-select">
+                    <option value="portrait">Portrait</option>
+                    <option value="landscape">Landscape</option>
+                </select>
+            </div>
+
+            <!-- Print Button -->
+            <button id="print-button" class="btn btn-primary w-100 py-2 shadow-sm">
+                Print Page
+            </button>
+        </div>
+    </div>
+
+    <!-- Content to be Printed -->
+    <div class="printable-content card shadow-lg w-100" style="max-width: 700px;">
+        <div class="card-body p-5">
+            <h1 class="text-center mb-4 text-primary">Example Document for Printing</h1>
+
+            <p class="lead mb-4 text-secondary">
+                This is an example document that will be printed. You can customize the page size and orientation using the settings above.
+                Notice how the content adapts based on your selections. This section is designed to demonstrate how your content will look on paper.
+                This text is now styled with Bootstrap's `text-secondary` class to show color printing.
+            </p>
+
+            <h2 class="mt-5 mb-3 page-break-before text-success">Section 1: Introduction</h2>
+            <p class="mb-4">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+                Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+            </p>
+
+            <h2 class="mt-4 mb-3 text-info">Section 2: Key Concepts</h2>
+            <ul class="list-group list-group-flush mb-4">
+                <li class="list-group-item">Responsive design for print media.</li>
+                <li class="list-group-item">Using `@media print` for specific print styles.</li>
+                <li class="list-group-item">Controlling page breaks with CSS properties.</li>
+                <li class="list-group-item">Optimizing images and fonts for print.</li>
+            </ul>
+
+            <h2 class="mt-5 mb-3 page-break-before text-warning">Section 3: Best Practices for Printing</h2>
+            <div class="mb-4">
+                <p class="fw-bold mb-2">Here are some best practices applied and recommended for web printing:</p>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <span class="fw-semibold">Use `@media print` CSS:</span> Essential for controlling how content looks when printed. It allows you to define specific styles that only apply when the document is sent to a printer.
+                    </li>
+                    <li class="list-group-item">
+                        <span class="fw-semibold">Hide Non-Printable Elements:</span> Elements like navigation menus, sidebars, footers, advertisements, and interactive components (buttons, forms) should typically be hidden using `display: none;` within your `@media print` block.
+                    </li>
+                    <li class="list-group-item">
+                        <span class="fw-semibold">Optimize Layout for Paper:</span> Avoid fixed pixel widths. Use fluid layouts (percentages, `vw`) or responsive frameworks. Ensure content flows naturally and doesn't get cut off.
+                    </li>
+                    <li class="list-group-item">
+                        <span class="fw-semibold">Readable Font Sizes and Colors:</span> Use font sizes that are easy to read on paper (e.g., 10pt to 12pt for body text). Convert background colors and images to print-friendly versions (usually black text on a white background) to save ink.
+                    </li>
+                    <li class="list-group-item">
+                        <span class="fw-semibold">Control Page Breaks:</span> Use CSS properties like `page-break-before`, `page-break-after`, and `page-break-inside` to ensure logical page breaks, preventing headings from being orphaned at the bottom of a page or images splitting across pages.
+                    </li>
+                    <li class="list-group-item">
+                        <span class="fw-semibold">Show Full URLs for Links:</span> For printed documents, it's helpful to display the full URL next to a link using the `::after` pseudo-element and `attr(href)`.
+                    </li>
+                    <li class="list-group-item">
+                        <span class="fw-semibold">High-Resolution Images:</span> Ensure any images intended for print are of sufficient resolution to look good on paper, but be mindful of file size for web loading.
+                    </li>
+                    <li class="list-group-item">
+                        <span class="fw-semibold">Accessibility:</span> Ensure the printed output is accessible, considering contrast and readability for all users.
+                    </li>
+                    <li class="list-group-item">
+                        <span class="fw-semibold">Browser Print Dialog:</span> Note that modern browsers often prioritize their own print dialog settings (for page size, orientation, margins, etc.) over dynamically applied `@page` CSS rules. If the desired settings are not automatically applied, please select them manually in your browser's print preview dialog.
+                    </li>
+                    <li class="list-group-item">
+                        <span class="fw-semibold">Precision for Cheque Printing:</span> For cheque printing, precise positioning of text (e.g., amount, payee, date) is crucial. This often requires careful use of absolute positioning, specific font sizes, and potentially a dedicated template for the cheque layout within your printable content. The 'Cheque' size option provides the correct paper dimensions, but content placement requires further implementation.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const pageSizeSelect = document.getElementById('page-size');
+            const orientationSelect = document.getElementById('orientation');
+            const printButton = document.getElementById('print-button');
+            const body = document.body;
+
+            /**
+             * Applies the selected page size and orientation to the document body
+             * by setting data attributes. These data attributes are then used
+             * by the `@media print` CSS rules to apply the correct `@page` styles.
+             */
+            function applyPrintSettings() {
+                const selectedSize = pageSizeSelect.value;
+                const selectedOrientation = orientationSelect.value;
+
+                // Set data attributes on the body element
+                body.setAttribute('data-print-size', selectedSize);
+                body.setAttribute('data-print-orientation', selectedOrientation);
+
+                console.log(`Print settings applied: Size=${selectedSize}, Orientation=${selectedOrientation}`);
+            }
+
+            /**
+             * Handles the print button click.
+             * It first applies the selected settings and then triggers the browser's print dialog.
+             */
+            function handlePrint() {
+                applyPrintSettings(); // Ensure settings are applied before printing
+                window.print(); // Trigger the browser's print dialog
+            }
+
+            // Initial application of settings when the page loads
+            applyPrintSettings();
+
+            // Event listeners for changes in select boxes
+            pageSizeSelect.addEventListener('change', applyPrintSettings);
+            orientationSelect.addEventListener('change', applyPrintSettings);
+
+            // Event listener for the print button
+            printButton.addEventListener('click', handlePrint);
+        });
+    </script>
+    <!-- Bootstrap JS CDN (optional, for some components, but not strictly needed for this example) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>

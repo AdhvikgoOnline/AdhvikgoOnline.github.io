@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Loader Example with 'is'</title>
+    <style>
+        /* Basic styling for demonstration */
+        /* Note: Styling targets the article with the 'is' attribute */
+        article[is="page-loader"] {
+            display: block;
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-top: 20px;
+            min-height: 100px;
+            background-color: #f9f9f9;
+        }
+        .loading-message {
+            text-align: center;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>My Application</h1>
+    <!-- Buttons adjusted for autoload functionality -->
+    <button id="loadPageBtn" style="display: none;">Load Dynamic Page</button>
+    <button id="closePageBtn">Close Page</button>
+
+    <!-- Updated: Using an article with the 'is' attribute and autoload -->
+    <article is="page-loader" id="myPageLoader" api-url="http://127.0.0.1:5500/pageloaderex.html" autoload></article>
+
+    <script>
+        const pageLoader = document.getElementById('myPageLoader');
+        const loadPageBtn = document.getElementById('loadPageBtn');
+        const closePageBtn = document.getElementById('closePageBtn');
+
+        // Adjust button visibility based on autoload
+        if (pageLoader.hasAttribute('autoload')) {
+            loadPageBtn.style.display = 'none';
+            closePageBtn.style.display = 'inline-block';
+        } else {
+            loadPageBtn.style.display = 'inline-block';
+            closePageBtn.style.display = 'none';
+        }
+
+        loadPageBtn.addEventListener('click', () => {
+            pageLoader.loadContent();
+            loadPageBtn.style.display = 'none';
+            closePageBtn.style.display = 'inline-block';
+        });
+
+        closePageBtn.addEventListener('click', () => {
+            pageLoader.closeContent();
+            loadPageBtn.style.display = 'inline-block';
+            closePageBtn.style.display = 'none';
+        });
+
+        // Example of customizing "after load"
+        pageLoader.addEventListener('pageloaded', (event) => {
+            console.log('Page Loaded Custom Process:', event.detail.content);
+            const loadedContentDiv = pageLoader.querySelector('#content-from-api'); // Assuming an ID in your loaded HTML
+            if (loadedContentDiv) {
+                const newParagraph = document.createElement('p');
+                newParagraph.textContent = 'This content was added dynamically AFTER the page loaded.';
+                loadedContentDiv.appendChild(newParagraph);
+            }
+            // Adjust button visibility after load if it was triggered by autoload
+            if (pageLoader.hasAttribute('autoload')) {
+                loadPageBtn.style.display = 'none';
+                closePageBtn.style.display = 'inline-block';
+            }
+        });
+
+        // Example of customizing "before close"
+        pageLoader.addEventListener('beforepageclose', (event) => {
+            console.log('Before Page Close Custom Process.');
+            if (!confirm('Are you sure you want to close this page?')) {
+                event.preventDefault(); // Prevent closing
+            }
+        });
+
+        // Example of customizing "after close"
+        pageLoader.addEventListener('afterpageclose', () => {
+            console.log('After Page Close Custom Process.');
+            alert('The page has been closed!');
+            // Adjust button visibility after close
+            loadPageBtn.style.display = 'inline-block';
+            closePageBtn.style.display = 'none';
+        });
+
+        // Example of customizing "before submit" (requires a form in the loaded content)
+        pageLoader.addEventListener('beforesubmit', (event) => {
+            console.log('Before Submit Custom Process.', event.detail.formData);
+            // You could validate event.detail.formData here
+            if (event.detail.formData.get('name') === '') {
+                alert('Name cannot be empty!');
+                event.preventDefault(); // Prevent submit
+            }
+        });
+
+        // Example of customizing "after submit"
+        pageLoader.addEventListener('aftersubmit', (event) => {
+            console.log('After Submit Custom Process.', event.detail.response);
+            alert('Form submitted successfully!');
+        });
+
+        // Example of customizing "error in submit"
+        pageLoader.addEventListener('errorsubmit', (event) => {
+            console.error('Error in Submit Custom Process.', event.detail.error);
+            alert('There was an error submitting the form: ' + event.detail.error.message);
+        });
+
+        // Example of customizing "set to input" (triggered by a method)
+        pageLoader.addEventListener('settoinput', (event) => {
+            console.log('Set to Input Custom Process.', event.detail.field, event.detail.value);
+        });
+
+        // Triggering set to input
+        setTimeout(() => {
+            // This would typically be triggered after data is fetched for editing
+            pageLoader.setContentToInput('email', 'test@example.com');
+        }, 3000); // Simulate some delay
+    </script>
+</body>
+</html>
+
+    <script>
+class PageLoader extends HTMLElement { // Changed to extend HTMLArticleElement
+    constructor() {
+        super();
+        this.isLoading = false;
+        this.contentLoaded = false; // To track if content is currently displayed
+        this.initialContent = this.innerHTML; // Store initial content if any
+    }
+
+    static get observedAttributes() {
+        return ['api-url', 'autoload']; // Added 'autoload' to observed attributes
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name === 'api-url' && oldValue !== newValue && this.contentLoaded) {
+            // If API URL changes and content is loaded, re-load
+            this.loadContent();
+        }
+        // No specific action needed for autoload change after initial connection,
+        // as it primarily affects connectedCallback.
+    }
+
+    connectedCallback() {
+        // If autoload attribute is present and content is not already loaded or loading, load content automatically
+        if (this.hasAttribute('autoload') && !this.contentLoaded && !this.isLoading) {
+            this.loadContent();
+        } else if (!this.contentLoaded && !this.isLoading) {
+            // Render placeholder if not autoloading and no content is loaded
+            this.renderPlaceholder();
+        }
+        this._addEventListeners();
+    }
+
+    disconnectedCallback() {
+        this._removeEventListeners();
+    }
+
+    renderPlaceholder() {
+        if (!this.isLoading && !this.contentLoaded) {
+            this.innerHTML = `<div class="loading-message">Click "Load Dynamic Page" to load content.</div>`;
+        } else if (this.isLoading) {
+            this.innerHTML = `<div class="loading-message">Loading content...</div>`;
+        }
+    }
+
+    /**
+     * Fetches HTML content from the API and inserts it.
+     */
+    async loadContent() {
+        if (this.isLoading) return; // Prevent multiple simultaneous loads
+        this.isLoading = true;
+        this.renderPlaceholder(); // Show loading message
+
+        const apiUrl = this.getAttribute('api-url');
+        if (!apiUrl) {
+            console.error('PageLoader: "api-url" attribute is missing.');
+            this.innerHTML = `<div class="error-message">Error: API URL is missing.</div>`;
+            this.isLoading = false;
+            return;
+        }
+
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const htmlContent = await response.text();
+            this.innerHTML = htmlContent; // Directly insert into the element
+            this.contentLoaded = true;
+            this.isLoading = false;
+
+            // **Custom Process After Load:**
+            // Dispatch a custom event for external customization
+            this.dispatchEvent(new CustomEvent('pageloaded', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                    content: htmlContent,
+                    element: this
+                }
+            }));
+
+            this._setupFormHandling(); // Setup form handling if any forms are loaded
+        } catch (error) {
+            console.error('PageLoader: Error loading content:', error);
+            this.innerHTML = `<div class="error-message">Failed to load content: ${error.message}</div>`;
+            this.isLoading = false;
+        }
+    }
+
+    /**
+     * Closes the loaded content, restoring initial state or clearing.
+     */
+    closeContent() {
+        const event = new CustomEvent('beforepageclose', {
+            bubbles: true,
+            composed: true,
+            cancelable: true // Allow prevention
+        });
+        this.dispatchEvent(event);
+
+        if (event.defaultPrevented) {
+            console.log('Page close was prevented by a custom handler.');
+            return;
+        }
+
+        this.innerHTML = this.initialContent || `<div class="loading-message">Content closed.</div>`;
+        this.contentLoaded = false;
+        this._removeFormHandling(); // Clean up form event listeners
+
+        // **Custom Process After Close:**
+        this.dispatchEvent(new CustomEvent('afterpageclose', {
+            bubbles: true,
+            composed: true
+        }));
+    }
+
+    /**
+     * INTERNAL: Sets up event listeners for forms within the loaded content.
+     */
+    _setupFormHandling() {
+        const forms = this.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('submit', this._handleFormSubmit);
+        });
+    }
+
+    /**
+     * INTERNAL: Removes event listeners for forms within the loaded content.
+     */
+    _removeFormHandling() {
+        const forms = this.querySelectorAll('form');
+        forms.forEach(form => {
+            form.removeEventListener('submit', this._handleFormSubmit);
+        });
+    }
+
+    /**
+     * INTERNAL: Handles form submission within the loaded content.
+     * Dispatches custom events for before/after/error in submit.
+     */
+    _handleFormSubmit = async (event) => {
+        event.preventDefault(); // Prevent default form submission
+
+        const formData = new FormData(event.target);
+
+        // **Custom Process Before Submit:**
+        const beforeSubmitEvent = new CustomEvent('beforesubmit', {
+            bubbles: true,
+            composed: true,
+            cancelable: true,
+            detail: {
+                form: event.target,
+                formData: formData
+            }
+        });
+        this.dispatchEvent(beforeSubmitEvent);
+
+        if (beforeSubmitEvent.defaultPrevented) {
+            console.log('Form submission prevented by a custom handler.');
+            return;
+        }
+
+        const action = event.target.action || ''; // Get form action
+        const method = event.target.method || 'POST'; // Get form method, default to POST
+
+        try {
+            const response = await fetch(action, {
+                method: method.toUpperCase(),
+                body: formData,
+                // You might need to adjust headers based on your API
+                // headers: {
+                //     'Content-Type': 'application/json' // If sending JSON, use JSON.stringify(Object.fromEntries(formData))
+                // }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            }
+
+            const responseData = await response.json();
+
+            // **Custom Process After Submit:**
+            this.dispatchEvent(new CustomEvent('aftersubmit', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                    form: event.target,
+                    formData: formData,
+                    response: responseData
+                }
+            }));
+        } catch (error) {
+            console.error('PageLoader: Form submission error:', error);
+            // **Custom Process Error in Submit:**
+            this.dispatchEvent(new CustomEvent('errorsubmit', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                    form: event.target,
+                    formData: formData,
+                    error: error
+                }
+            }));
+        }
+    };
+
+    /**
+     * Allows setting values to input fields within the loaded content.
+     * @param {string} fieldName - The 'name' attribute of the input field.
+     * @param {string} value - The value to set.
+     */
+    setContentToInput(fieldName, value) {
+        const input = this.querySelector(`[name="${fieldName}"]`);
+        if (input) {
+            input.value = value;
+            // **Custom Process Set to Input:**
+            this.dispatchEvent(new CustomEvent('settoinput', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                    field: fieldName,
+                    value: value,
+                    inputElement: input
+                }
+            }));
+        } else {
+            console.warn(`PageLoader: Input field with name "${fieldName}" not found.`);
+        }
+    }
+
+    /**
+     * Resets all forms within the loaded content.
+     * **Custom Process Reset:** Dispatches 'afterreset' event.
+     */
+    resetContent() {
+        const forms = this.querySelectorAll('form');
+        forms.forEach(form => form.reset());
+
+        this.dispatchEvent(new CustomEvent('afterreset', {
+            bubbles: true,
+            composed: true
+        }));
+    }
+
+    /**
+     * Gets current form data as an object (if forms are present).
+     * This can be used for "List Parameters" conceptually.
+     * @returns {object} An object containing form data.
+     */
+    getFormData() {
+        const data = {};
+        const forms = this.querySelectorAll('form');
+        forms.forEach(form => {
+            const formData = new FormData(form);
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+        });
+        return data;
+    }
+
+    // --- Customization points for Data Operations (Conceptual) ---
+    // These methods would typically call your backend API and dispatch events.
+
+    /**
+     * Conceptual method to trigger a list operation.
+     * Dispatches 'beforelist' and 'afterlist' events.
+     */
+    async listData(params = {}) {
+        const beforeListEvent = new CustomEvent('beforelist', {
+            bubbles: true,
+            composed: true,
+            cancelable: true,
+            detail: { params: params }
+        });
+        this.dispatchEvent(beforeListEvent);
+
+        if (beforeListEvent.defaultPrevented) {
+            console.log('List operation prevented.');
+            return;
+        }
+
+        try {
+            // Simulate API call
+            const response = await fetch('/api/list', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(params)
+            });
+            const data = await response.json();
+
+            this.dispatchEvent(new CustomEvent('afterlist', {
+                bubbles: true,
+                composed: true,
+                detail: { data: data, params: params }
+            }));
+            return data;
+        } catch (error) {
+            console.error('Error listing data:', error);
+            this.dispatchEvent(new CustomEvent('errorlist', {
+                bubbles: true,
+                composed: true,
+                detail: { error: error, params: params }
+            }));
+        }
+    }
+
+    /**
+     * Conceptual method to trigger an add operation.
+     * Dispatches 'beforeadd' and 'afteradd' events.
+     */
+    async addData(data) {
+        const beforeAddEvent = new CustomEvent('beforeadd', {
+            bubbles: true,
+            composed: true,
+            cancelable: true,
+            detail: { data: data }
+        });
+        this.dispatchEvent(beforeAddEvent);
+
+        if (beforeAddEvent.defaultPrevented) {
+            console.log('Add operation prevented.');
+            return;
+        }
+
+        try {
+            // Simulate API call
+            const response = await fetch('/api/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const responseData = await response.json();
+
+            this.dispatchEvent(new CustomEvent('afteradd', {
+                bubbles: true,
+                composed: true,
+                detail: { response: responseData, data: data }
+            }));
+            return responseData;
+        } catch (error) {
+            console.error('Error adding data:', error);
+            this.dispatchEvent(new CustomEvent('erroradd', {
+                bubbles: true,
+                composed: true,
+                detail: { error: error, data: data }
+            }));
+        }
+    }
+
+    /**
+     * Conceptual method to trigger an update operation.
+     * Dispatches 'beforeupdate' and 'afterupdate' events.
+     */
+    async updateData(id, data) {
+        const beforeUpdateEvent = new CustomEvent('beforeupdate', {
+            bubbles: true,
+            composed: true,
+            cancelable: true,
+            detail: { id: id, data: data }
+        });
+        this.dispatchEvent(beforeUpdateEvent);
+
+        if (beforeUpdateEvent.defaultPrevented) {
+            console.log('Update operation prevented.');
+            return;
+        }
+
+        try {
+            // Simulate API call
+            const response = await fetch(`/api/update/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const responseData = await response.json();
+
+            this.dispatchEvent(new CustomEvent('afterupdate', {
+                bubbles: true,
+                composed: true,
+                detail: { response: responseData, id: id, data: data }
+            }));
+            return responseData;
+        } catch (error) {
+            console.error('Error updating data:', error);
+            this.dispatchEvent(new CustomEvent('errorupdate', {
+                bubbles: true,
+                composed: true,
+                detail: { error: error, id: id, data: data }
+            }));
+        }
+    }
+
+    /**
+     * Conceptual method to trigger a delete operation.
+     * Dispatches 'beforedelete' and 'afterdelete' events.
+     */
+    async deleteData(id) {
+        const beforeDeleteEvent = new CustomEvent('beforedelete', {
+            bubbles: true,
+            composed: true,
+            cancelable: true,
+            detail: { id: id }
+        });
+        this.dispatchEvent(beforeDeleteEvent);
+
+        if (beforeDeleteEvent.defaultPrevented) {
+            console.log('Delete operation prevented.');
+            return;
+        }
+
+        try {
+            // Simulate API call
+            const response = await fetch(`/api/delete/${id}`, {
+                method: 'DELETE'
+            });
+            const responseData = await response.json();
+
+            this.dispatchEvent(new CustomEvent('afterdelete', {
+                bubbles: true,
+                composed: true,
+                detail: { response: responseData, id: id }
+            }));
+            return responseData;
+        } catch (error) {
+            console.error('Error deleting data:', error);
+            this.dispatchEvent(new CustomEvent('errordelete', {
+                bubbles: true,
+                composed: true,
+                detail: { error: error, id: id }
+            }));
+        }
+    }
+
+
+    // Event listener management for cleanup
+    _addEventListeners() {
+        // Add any other internal event listeners here if needed
+        // For example, if you had internal buttons within the component that always exist
+    }
+
+    _removeEventListeners() {
+        // Remove any internal event listeners here to prevent memory leaks
+    }
+}
+
+customElements.define('page-loader', PageLoader, { extends: 'article' }); // Changed to extend 'article'
+    </script>
+</body>
+</html>

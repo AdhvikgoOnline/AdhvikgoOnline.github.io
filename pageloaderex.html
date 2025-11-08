@@ -1,0 +1,17 @@
+<div id="content-from-api">
+    <h2>Dynamically Loaded Content</h2>
+    <p>This content was loaded from an external HTML file via the API.</p>
+
+    <form id="dynamicForm" action="/api/submit" method="POST">
+        <label for="name">Name:</label><br>
+        <input type="text" id="name" name="name" value="Default Name"><br><br>
+
+        <label for="email">Email:</label><br>
+        <input type="email" id="email" name="email" value="default@example.com"><br><br>
+
+        <button type="submit">Submit Dynamic Form</button>
+        <button type="button" onclick="document.getElementById('myPageLoader').resetContent()">Reset Form</button>
+    </form>
+
+    <p>You can interact with this content, and the parent component can add custom logic.</p>
+</div>

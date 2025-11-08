@@ -176,10 +176,6 @@ $(document).off('click', 'a.aidclose, button.aidclose').on('click', 'a.aidclose,
 //     e.preventDefault();
 //     window.scroll({ top: 0, left: 0, behavior: 'smooth' });
 // });
-$(document).off('click', 'a.fzoom, button.fzoom').on('click', 'a.fzoom, button.fzoom', function (e) {
-    e.preventDefault();
-    $(this).closest('article, dialog').toggleClass('aifc');
-});
 // $(document).off('click', 'a.themeswitch, button.themeswitch').on('click', 'a.themeswitch, button.themeswitch', function (e) {
 //     e.preventDefault();
 //     var checkBoxes = $("input", $(this)); checkBoxes.prop("checked", !checkBoxes.prop("checked"));

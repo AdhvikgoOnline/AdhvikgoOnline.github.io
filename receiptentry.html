@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-key="pageTitle">देणगी/जाहिरात पावती फॉर्म</title>
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif; /* Fallback font */
+        }
+        .form-container, .receipt-preview-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .form-floating label {
+            color: #6c757d;
+        }
+        .receipt-preview-container {
+            border: 1px dashed #007bff;
+            margin-top: 30px;
+            display: none; /* Hidden by default */
+        }
+        .receipt-container {
+            max-width: 100%; /* Adjust to fit inside the preview container */
+            margin: 0 auto;
+            box-shadow: none; /* Remove shadow as parent has it */
+            border: none; /* Remove border as parent has it */
+        }
+        .card-header h1 {
+            color: #0056b3;
+            font-weight: bold;
+        }
+        .table th, .table td {
+            vertical-align: middle;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #777;
+        }
+        .signature-line {
+            border-top: 1px solid #333;
+            width: 200px;
+            margin-top: 50px;
+            padding-top: 5px;
+            text-align: center;
+        }
+        .form-section-title {
+            background-color: #e9ecef;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container form-container">
+        <div class="d-flex justify-content-end mb-3">
+            <div class="form-floating" style="width: 150px;">
+                <select class="form-select" id="languageSelector">
+                    <option value="mr">मराठी</option>
+                    <option value="en">English</option>
+                </select>
+                <label for="languageSelector" data-key="selectLanguage">भाषा निवडा</label>
+            </div>
+        </div>
+
+        <h2 class="text-center mb-4 text-primary" data-key="formTitle">देणगी/जाहिरात पावती फॉर्म</h2>
+        <form id="receiptForm">
+            <!-- Organization Details -->
+            <div class="form-section-title" data-key="orgDetailsTitle">संस्थेचे तपशील</div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="orgName" placeholder="संस्थेचे नाव" value="[तुमच्या संस्थेचे/व्यवसायाचे नाव]" required>
+                        <label for="orgName" data-key="orgNameLabel">संस्थेचे नाव</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="orgAddress" placeholder="पत्ता" value="[तुमचा पत्ता, शहर, पिनकोड]" required>
+                        <label for="orgAddress" data-key="addressLabel">पत्ता</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="tel" class="form-control" id="orgPhone" placeholder="फोन नंबर" value="[तुमचा फोन नंबर]" required>
+                        <label for="orgPhone" data-key="phoneNoLabel">फोन नंबर</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="email" class="form-control" id="orgEmail" placeholder="ईमेल" value="[तुमचा ईमेल]" required>
+                        <label for="orgEmail" data-key="emailLabel">ईमेल</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Receipt Details -->
+            <div class="form-section-title" data-key="receiptDetailsTitle">पावती तपशील</div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="receiptNo" placeholder="पावती क्रमांक" value="REC-001" required>
+                        <label for="receiptNo" data-key="receiptNoLabel">पावती क्रमांक</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="date" class="form-control" id="receiptDate" value="2025-07-26" required>
+                        <label for="receiptDate" data-key="dateLabel">दिनांक</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Donor/Advertiser Details -->
+            <div class="form-section-title" data-key="donorDetailsTitle">दात्याचे/जाहिरातदाराचे तपशील</div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-12">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="donorName" placeholder="दात्याचे/जाहिरातदाराचे नाव" required>
+                        <label for="donorName" data-key="donorNameLabel">दात्याचे/जाहिरातदाराचे नाव</label>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="donorAddress" placeholder="पत्ता" required>
+                        <label for="donorAddress" data-key="donorAddressLabel">पत्ता</label>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-floating">
+                        <input type="tel" class="form-control" id="donorPhone" placeholder="फोन नंबर" required>
+                        <label for="donorPhone" data-key="donorPhoneLabel">फोन नंबर</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item Details -->
+            <div class="form-section-title" data-key="itemDetailsTitle">वस्तू तपशील</div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="itemDescription" placeholder="वर्णन" required>
+                        <label for="itemDescription" data-key="descriptionLabel">वर्णन</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <select class="form-select" id="itemType" required>
+                            <option value="" data-key="selectOption">निवडा</option>
+                            <option value="देणगी" data-key="donationOption">देणगी</option>
+                            <option value="जाहिरात" data-key="advertisementOption">जाहिरात</option>
+                        </select>
+                        <label for="itemType" data-key="typeLabel">प्रकार</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="number" class="form-control" id="amount" placeholder="रक्कम" min="0" step="0.01" required>
+                        <label for="amount" data-key="amountLabel">रक्कम (रु.)</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="amountInWords" placeholder="शब्दात रक्कम" readonly>
+                        <label for="amountInWords" data-key="amountInWordsLabel">शब्दात रक्कम</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Special Note -->
+            <div class="form-section-title" data-key="specialNoteTitle">विशेष टीप</div>
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <div class="form-floating">
+                        <textarea class="form-control" id="specialNote" placeholder="विशेष टीप" style="height: 100px;">ही पावती आयकर कायद्याच्या कलम ८०जी अंतर्गत कर सवलतीसाठी पात्र आहे (केवळ देणगीसाठी लागू असल्यास). कृपया लक्षात ठेवा, ही फक्त एक नमुना पावती आहे.</textarea>
+                        <label for="specialNote" data-key="specialNoteLabel">विशेष टीप</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg" data-key="generateReceiptBtn">पावती तयार करा</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Receipt Preview Area -->
+    <div class="container receipt-preview-container" id="receiptPreviewArea">
+        <h3 class="text-center mb-4 text-success" data-key="receiptPreviewTitle">पावती पूर्वावलोकन</h3>
+        <div id="generatedReceiptContent">
+            <!-- Receipt will be generated here -->
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script>
+        const translations = {
+            mr: {
+                pageTitle: "देणगी/जाहिरात पावती फॉर्म",
+                selectLanguage: "भाषा निवडा",
+                formTitle: "देणगी/जाहिरात पावती फॉर्म",
+                orgDetailsTitle: "संस्थेचे तपशील",
+                orgNameLabel: "संस्थेचे नाव",
+                addressLabel: "पत्ता",
+                phoneNoLabel: "फोन नंबर",
+                emailLabel: "ईमेल",
+                receiptDetailsTitle: "पावती तपशील",
+                receiptNoLabel: "पावती क्रमांक",
+                dateLabel: "दिनांक",
+                donorDetailsTitle: "दात्याचे/जाहिरातदाराचे तपशील",
+                donorNameLabel: "दात्याचे/जाहिरातदाराचे नाव",
+                donorAddressLabel: "पत्ता",
+                donorPhoneLabel: "फोन नंबर",
+                itemDetailsTitle: "वस्तू तपशील",
+                descriptionLabel: "वर्णन",
+                typeLabel: "प्रकार",
+                selectOption: "निवडा",
+                donationOption: "देणगी",
+                advertisementOption: "जाहिरात",
+                amountLabel: "रक्कम (रु.)",
+                amountInWordsLabel: "शब्दात रक्कम",
+                specialNoteTitle: "विशेष टीप",
+                specialNotePlaceholder: "विशेष टीप",
+                generateReceiptBtn: "पावती तयार करा",
+                receiptPreviewTitle: "पावती पूर्वावलोकन",
+                receiptTitle: "पावती",
+                fromLabel: "कडून",
+                nameLabel: "नाव",
+                descriptionTableHeader: "वर्णन",
+                typeTableHeader: "प्रकार",
+                amountTableHeader: "रक्कम",
+                totalAmountLabel: "एकूण रक्कम",
+                inWordsLabel: "शब्दात",
+                signatureLabel: "अधिकृत स्वाक्षरी",
+                thankYouMessage: "तुमच्या योगदानाबद्दल धन्यवाद!",
+                sincerelyLabel: "आपला विश्वासू,",
+                currencyRupees: "रु.",
+                currencyPaise: "पैसे",
+                onlySuffix: "फक्त"
+            },
+            en: {
+                pageTitle: "Donation/Advertisement Receipt Form",
+                selectLanguage: "Select Language",
+                formTitle: "Donation/Advertisement Receipt Form",
+                orgDetailsTitle: "Organization Details",
+                orgNameLabel: "Organization Name",
+                addressLabel: "Address",
+                phoneNoLabel: "Phone Number",
+                emailLabel: "Email",
+                receiptDetailsTitle: "Receipt Details",
+                receiptNoLabel: "Receipt Number",
+                dateLabel: "Date",
+                donorDetailsTitle: "Donor/Advertiser Details",
+                donorNameLabel: "Donor/Advertiser Name",
+                donorAddressLabel: "Address",
+                donorPhoneLabel: "Phone Number",
+                itemDetailsTitle: "Item Details",
+                descriptionLabel: "Description",
+                typeLabel: "Type",
+                selectOption: "Select",
+                donationOption: "Donation",
+                advertisementOption: "Advertisement",
+                amountLabel: "Amount (Rs.)",
+                amountInWordsLabel: "Amount in Words",
+                specialNoteTitle: "Special Note",
+                specialNotePlaceholder: "Special Note",
+                generateReceiptBtn: "Generate Receipt",
+                receiptPreviewTitle: "Receipt Preview",
+                receiptTitle: "Receipt",
+                fromLabel: "From",
+                nameLabel: "Name",
+                descriptionTableHeader: "Description",
+                typeTableHeader: "Type",
+                amountTableHeader: "Amount",
+                totalAmountLabel: "Total Amount",
+                inWordsLabel: "In Words",
+                signatureLabel: "Authorized Signature",
+                thankYouMessage: "Thank you for your contribution!",
+                sincerelyLabel: "Sincerely,",
+                currencyRupees: "Rs.",
+                currencyPaise: "Paise",
+                onlySuffix: "only"
+            }
+        };
+
+        let currentLanguage = 'mr'; // Default language
+
+        // Function to set the language
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            document.documentElement.lang = lang; // Set HTML lang attribute
+            const elements = document.querySelectorAll('[data-key]');
+            elements.forEach(element => {
+                const key = element.getAttribute('data-key');
+                if (translations[lang] && translations[lang][key]) {
+                    if (element.tagName === 'INPUT' && element.type === 'text' || element.type === 'tel' || element.type === 'email' || element.type === 'number') {
+                        element.placeholder = translations[lang][key];
+                    } else if (element.tagName === 'LABEL') {
+                        element.textContent = translations[lang][key];
+                    } else if (element.tagName === 'BUTTON') {
+                        element.textContent = translations[lang][key];
+                    } else if (element.tagName === 'OPTION') {
+                        // For options, check if the data-key matches the option's value or specific key
+                        if (key === 'selectOption' || key === 'donationOption' || key === 'advertisementOption') {
+                            element.textContent = translations[lang][key];
+                        }
+                    } else if (element.tagName === 'H2' || element.tagName === 'H3' || element.tagName === 'H1' || element.classList.contains('form-section-title')) {
+                         element.textContent = translations[lang][key];
+                    } else if (element.tagName === 'TH') {
+                        element.textContent = translations[lang][key];
+                    } else {
+                        element.textContent = translations[lang][key];
+                    }
+                }
+            });
+
+            // Update amount in words based on new language if amount is already entered
+            const amount = parseFloat(amountInput.value);
+            if (!isNaN(amount)) {
+                amountInWordsInput.value = (lang === 'mr' ? convertNumberToMarathiWords(amount) : convertNumberToEnglishWords(amount));
+            } else {
+                amountInWordsInput.value = '';
+            }
+
+            // Update special note placeholder if it's not filled by user
+            const specialNoteElement = document.getElementById('specialNote');
+            if (specialNoteElement.value === "" || specialNoteElement.value === translations['mr']['specialNotePlaceholder'] || specialNoteElement.value === translations['en']['specialNotePlaceholder']) {
+                 specialNoteElement.value = translations[lang]['specialNotePlaceholder'];
+            }
+        }
+
+        // Function to convert numbers to Marathi words
+        function convertNumberToMarathiWords(num) {
+            if (num === null || num === undefined || isNaN(num)) {
+                return "";
+            }
+            if (num === 0) {
+                return "शून्य रुपये";
+            }
+
+            const units = ["", "एक", "दोन", "तीन", "चार", "पाच", "सहा", "सात", "आठ", "नऊ", "दहा", "अकरा", "बारा", "तेरा", "चौदा", "पंधरा", "सोळा", "सतरा", "अठरा", "एकोणीस"];
+            const tens = ["", "", "वीस", "तीस", "चाळीस", "पन्नास", "साठ", "सत्तर", "ऐंशी", "नव्वद"];
+            const denominations = ["", "हजार", "लाख", "कोटी", "अब्ज"];
+
+            function convertLessThanOneThousand(n) {
+                let result = "";
+                if (n >= 100) {
+                    result += units[Math.floor(n / 100)] + " शंभर ";
+                    n %= 100;
+                }
+                if (n >= 20) {
+                    result += tens[Math.floor(n / 10)] + " ";
+                    n %= 10;
+                }
+                if (n > 0) {
+                    result += units[n] + " ";
+                }
+                return result.trim();
+            }
+
+            let integerPart = Math.floor(num);
+            let decimalPart = Math.round((num - integerPart) * 100);
+
+            let words = "";
+            let i = 0;
+
+            if (integerPart === 0) {
+                words = "शून्य";
+            } else {
+                // Process in chunks of 2 for lakhs/crores, and 3 for thousands
+                const chunks = [];
+                let tempNum = integerPart;
+                chunks.push(tempNum % 1000); // First chunk (0-999)
+                tempNum = Math.floor(tempNum / 1000);
+                chunks.push(tempNum % 100); // Thousands (0-99)
+                tempNum = Math.floor(tempNum / 100);
+                chunks.push(tempNum % 100); // Lakhs (0-99)
+                tempNum = Math.floor(tempNum / 100);
+                chunks.push(tempNum % 100); // Crores (0-99)
+                tempNum = Math.floor(tempNum / 100);
+                chunks.push(tempNum % 100); // Arbs (0-99)
+
+                for (let j = 0; j < chunks.length; j++) {
+                    if (chunks[j] > 0) {
+                        let chunkWords = convertLessThanOneThousand(chunks[j]);
+                        if (j === 0) { // Units and Hundreds
+                            words = chunkWords + " " + words;
+                        } else if (j === 1) { // Thousands
+                            words = chunkWords + " हजार " + words;
+                        } else if (j === 2) { // Lakhs
+                            words = chunkWords + " लाख " + words;
+                        } else if (j === 3) { // Crores
+                            words = chunkWords + " कोटी " + words;
+                        } else if (j === 4) { // Arbs
+                            words = chunkWords + " अब्ज " + words;
+                        }
+                    }
+                }
+            }
+
+            words = words.trim();
+            if (words === "") {
+                words = "शून्य";
+            }
+
+            let decimalWords = "";
+            if (decimalPart > 0) {
+                decimalWords = " आणि " + convertLessThanOneThousand(decimalPart) + " पैसे";
+            }
+
+            return `${words} रुपये${decimalWords}`.trim();
+        }
+
+        // Function to convert numbers to English words
+        function convertNumberToEnglishWords(num) {
+            if (num === null || num === undefined || isNaN(num)) {
+                return "";
+            }
+            if (num === 0) {
+                return "Zero Rupees";
+            }
+
+            const units = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+            const tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+            const scales = ["", "thousand", "million", "billion", "trillion"]; // For English scales
+
+            function convertLessThanOneThThousandEnglish(n) {
+                let s = "";
+                if (n >= 100) {
+                    s += units[Math.floor(n / 100)] + " hundred ";
+                    n %= 100;
+                }
+                if (n >= 20) {
+                    s += tens[Math.floor(n / 10)] + " ";
+                    n %= 10;
+                }
+                if (n > 0) {
+                    s += units[n] + " ";
+                }
+                return s.trim();
+            }
+
+            let integerPart = Math.floor(num);
+            let decimalPart = Math.round((num - integerPart) * 100);
+
+            let words = "";
+            let i = 0;
+
+            if (integerPart === 0) {
+                words = "Zero";
+            } else {
+                while (integerPart > 0) {
+                    let chunk = integerPart % 1000;
+                    if (chunk > 0) {
+                        let chunkWords = convertLessThanOneThThousandEnglish(chunk);
+                        words = chunkWords + " " + scales[i] + " " + words;
+                    }
+                    integerPart = Math.floor(integerPart / 1000);
+                    i++;
+                }
+            }
+
+            words = words.trim();
+            if (words === "") {
+                words = "Zero";
+            }
+
+            let decimalWords = "";
+            if (decimalPart > 0) {
+                decimalWords = " and " + convertLessThanOneThThousandEnglish(decimalPart) + " " + translations[currentLanguage]['currencyPaise'];
+            }
+
+            return `${words} ${translations[currentLanguage]['currencyRupees']}${decimalWords}`.trim();
+        }
+
+
+        // Get elements
+        const languageSelector = document.getElementById('languageSelector');
+        const amountInput = document.getElementById('amount');
+        const amountInWordsInput = document.getElementById('amountInWords');
+        const receiptForm = document.getElementById('receiptForm');
+        const receiptPreviewArea = document.getElementById('receiptPreviewArea');
+        const generatedReceiptContent = document.getElementById('generatedReceiptContent');
+
+        // Event listener for language selector
+        languageSelector.addEventListener('change', (event) => {
+            setLanguage(event.target.value);
+        });
+
+        // Event listener for amount input
+        amountInput.addEventListener('input', () => {
+            const amount = parseFloat(amountInput.value);
+            if (!isNaN(amount)) {
+                amountInWordsInput.value = (currentLanguage === 'mr' ? convertNumberToMarathiWords(amount) : convertNumberToEnglishWords(amount));
+            } else {
+                amountInWordsInput.value = '';
+            }
+        });
+
+        // Event listener for form submission
+        receiptForm.addEventListener('submit', (event) => {
+            event.preventDefault(); // Prevent default form submission
+
+            // Gather form data
+            const orgName = document.getElementById('orgName').value;
+            const orgAddress = document.getElementById('orgAddress').value;
+            const orgPhone = document.getElementById('orgPhone').value;
+            const orgEmail = document.getElementById('orgEmail').value;
+            const receiptNo = document.getElementById('receiptNo').value;
+            const receiptDate = document.getElementById('receiptDate').value;
+            const donorName = document.getElementById('donorName').value;
+            const donorAddress = document.getElementById('donorAddress').value;
+            const donorPhone = document.getElementById('donorPhone').value;
+            const itemDescription = document.getElementById('itemDescription').value;
+            const itemType = document.getElementById('itemType').value;
+            const amount = parseFloat(document.getElementById('amount').value).toFixed(2);
+            const amountInWords = document.getElementById('amountInWords').value;
+            const specialNote = document.getElementById('specialNote').value;
+
+            // Format date based on current language
+            const dateObj = new Date(receiptDate);
+            const formattedDate = new Intl.DateTimeFormat(currentLanguage === 'mr' ? 'mr-IN' : 'en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }).format(dateObj);
+
+
+            // Get translated strings for the receipt
+            const t = translations[currentLanguage];
+
+            // Generate receipt HTML
+            const receiptHTML = `
+                <div class="card receipt-container">
+                    <div class="card-header text-center py-4">
+                        <h1>${t.receiptTitle}</h1>
+                        <p class="mb-1">${orgName}</p>
+                        <p class="mb-1">${orgAddress}</p>
+                        <p class="mb-0">${orgPhone} | ${orgEmail}</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <p><strong>${t.receiptNoLabel}:</strong> <span class="text-primary">${receiptNo}</span></p>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <p><strong>${t.dateLabel}:</strong> <span class="text-primary">${formattedDate}</span></p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="mb-3">${t.fromLabel}:</h5>
+                                <p class="mb-1"><strong>${t.nameLabel}:</strong> ${donorName}</p>
+                                <p class="mb-1"><strong>${t.addressLabel}:</strong> ${donorAddress}</p>
+                                <p class="mb-0"><strong>${t.phoneNoLabel}:</strong> ${donorPhone}</p>
+                            </div>
+                        </div>
+
+                        <h5 class="mb-3">${t.descriptionLabel}:</h5>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>${t.descriptionTableHeader}</th>
+                                        <th>${t.typeTableHeader}</th>
+                                        <th>${t.amountTableHeader}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>${itemDescription}</td>
+                                        <td>${itemType === 'देणगी' ? t.donationOption : t.advertisementOption}</td>
+                                        <td>${t.currencyRupees} ${amount}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="row justify-content-end mb-4">
+                            <div class="col-md-6 text-end">
+                                <h4 class="text-primary">${t.totalAmountLabel}: ${t.currencyRupees} ${amount}</h4>
+                                <p class="fw-bold">${t.inWordsLabel}: ${amountInWords} ${t.onlySuffix}</p>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info text-center" role="alert">
+                            ${specialNote}
+                        </div>
+
+                        <div class="text-end mt-5">
+                            <div class="signature-line ms-auto">
+                                <p class="mb-0">${t.signatureLabel}</p>
+                            </div>
+                        </div>
+
+                        <div class="footer text-center mt-5">
+                            <p class="mb-1">${t.thankYouMessage}</p>
+                            <p class="mb-0">${t.sincerelyLabel}</p>
+                            <p class="mb-0 fw-bold">${orgName}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            generatedReceiptContent.innerHTML = receiptHTML;
+            receiptPreviewArea.style.display = 'block'; // Show the preview area
+            receiptPreviewArea.scrollIntoView({ behavior: 'smooth' }); // Scroll to the preview
+        });
+
+        // Set current date to the date input field and initialize language
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+            const day = String(today.getDate()).padStart(2, '0');
+            document.getElementById('receiptDate').value = `${year}-${month}-${day}`;
+
+            // Initialize language on page load
+            setLanguage(currentLanguage);
+        });
+
+    </script>
+</body>
+</html>

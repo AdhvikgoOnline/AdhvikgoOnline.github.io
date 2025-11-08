@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Family Tree Component</title>
+    <!--
+    This is a self-contained HTML file that creates a custom web component
+    for a dynamic family tree. It uses the basicprimitives.com library for
+    visualization and Tailwind CSS for styling. The component does not use
+    Shadow DOM as requested.
+    -->
+
+    <!-- Load Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define a custom font family for a clean look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            padding: 2rem;
+        }
+
+        /* Basic styling for the component container */
+        #family-tree-container {
+            width: 100%;
+            max-width: 900px;
+            margin: auto;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Styling for the Basic Primitives organizational chart */
+        #org-chart-container {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            height: 500px;
+        }
+
+        /* Custom styles for the input form */
+        form {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+    </style>
+
+    <!-- Load jQuery, a dependency for basicprimitives -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- Load the basicprimitives library -->
+    <script src="https://www.basicprimitives.com/js/primitives.js"></script>
+
+</head>
+<body>
+
+<!--
+The custom web component will be rendered here.
+The component's name is 'family-tree'.
+-->
+<div id="family-tree-container" class="bg-gray-50 border border-gray-200 rounded-2xl p-6 md:p-10 shadow-lg">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Dynamic Family Tree</h1>
+    <family-tree></family-tree>
+</div>
+
+<script>
+    // This is the custom web component class.
+    // It extends HTMLElement to become a custom element.
+    class FamilyTreeComponent extends HTMLElement {
+        // Constructor is called when the element is created.
+        constructor() {
+            super();
+            this.chartData = []; // Array to hold the family member data
+            this.chartContainerId = `org-chart-${Math.random().toString(36).substr(2, 9)}`;
+        }
+
+        // connectedCallback is called when the element is inserted into the DOM.
+        connectedCallback() {
+            // Check if content is already rendered to prevent duplicates
+            if (this.rendered) {
+                return;
+            }
+            this.rendered = true;
+
+            // Create the HTML structure for the component without using Shadow DOM.
+            this.innerHTML = `
+                <div class="p-4 bg-white rounded-lg shadow-sm">
+                    <!-- Form for adding new family members -->
+                    <form id="add-member-form" class="space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0 w-full">
+                            <input type="text" id="member-name" placeholder="Name" required class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200">
+                            <input type="text" id="member-relation" placeholder="Relation (e.g., Son, Wife)" required class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200">
+                            <input type="text" id="member-parent-id" placeholder="Parent ID (e.g., 'root')" required class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200">
+                        </div>
+                        <button type="submit" class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-200">
+                            Add Member
+                        </button>
+                    </form>
+                    <!-- Container for the organizational chart from basicprimitives.com -->
+                    <div id="${this.chartContainerId}" class="w-full"></div>
+                </div>
+            `;
+
+            // Initialize the chart with a root node.
+            this.chartData = [
+                { id: "root", parent: null, name: "Family" }
+            ];
+            
+            // Set up event listener for the form submission.
+            const form = this.querySelector('#add-member-form');
+            form.addEventListener('submit', this.handleAddMember.bind(this));
+
+            // Initialize the organizational chart after a small delay to ensure the DOM is ready.
+            setTimeout(() => {
+                this.initializeChart();
+            }, 0);
+        }
+
+        // Method to initialize the organizational chart.
+        initializeChart() {
+            const chartOptions = {
+                items: this.chartData,
+                pageFitMode: primitives.orgdiagram.PageFitMode.FitToPage,
+                onSelectionChanged: (e) => this.onSelectionChanged(e),
+                cursorItem: 0,
+                templates: [{
+                    name: "defaultTemplate",
+                    itemTemplate: (data) => {
+                        return `
+                            <div class="box-border h-full flex flex-col p-2 text-center text-xs">
+                                <div class="font-bold text-gray-800">${data.context.name}</div>
+                                <div class="text-gray-500">${data.context.relation || ''}</div>
+                                <div class="mt-auto text-gray-400 text-xs">ID: ${data.context.id}</div>
+                            </div>
+                        `;
+                    }
+                }]
+            };
+
+            // Use jQuery to initialize the chart.
+            $(`#${this.chartContainerId}`).orgDiagram(chartOptions);
+        }
+
+        // Method to handle adding a new family member from the form.
+        handleAddMember(event) {
+            event.preventDefault(); // Prevent default form submission behavior
+
+            const nameInput = this.querySelector('#member-name');
+            const relationInput = this.querySelector('#member-relation');
+            const parentIdInput = this.querySelector('#member-parent-id');
+
+            const name = nameInput.value.trim();
+            const relation = relationInput.value.trim();
+            const parentId = parentIdInput.value.trim();
+            const id = name.toLowerCase().replace(/\s/g, '-') + '-' + Math.random().toString(36).substr(2, 4);
+
+            if (!name || !relation || !parentId) {
+                alert('Please fill out all fields.');
+                return;
+            }
+
+            // Create a new member object.
+            const newMember = {
+                id: id,
+                parent: parentId,
+                name: name,
+                relation: relation
+            };
+
+            // Add the new member to the chart data array.
+            this.chartData.push(newMember);
+
+            // Update the chart with the new data. This is the "dynamic loading" part.
+            this.updateChart();
+
+            // Clear the input fields for the next entry.
+            nameInput.value = '';
+            relationInput.value = '';
+            parentIdInput.value = '';
+        }
+
+        // Method to update the chart view.
+        updateChart() {
+            const chartOptions = {
+                items: this.chartData
+            };
+            // Use jQuery's orgDiagram 'update' method to re-render the chart.
+            $(`#${this.chartContainerId}`).orgDiagram("update", chartOptions);
+        }
+
+        // Method to handle a selection change in the chart (optional).
+        onSelectionChanged(event) {
+            const selectedItem = event.context.items[0];
+            if (selectedItem) {
+                console.log("Selected item:", selectedItem);
+            }
+        }
+    }
+
+    // Define the new custom element with the tag name 'family-tree'.
+    // This is the final step to register the component with the browser.
+    customElements.define('family-tree', FamilyTreeComponent);
+</script>
+
+</body>
+</html>

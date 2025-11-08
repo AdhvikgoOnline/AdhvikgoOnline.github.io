@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monaco Editor Web Component</title>
+    <!-- Bootstrap CSS (loaded globally as it's a common framework) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Bootstrap JS (loaded globally as it's a common framework) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Monaco Editor CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.0/min/vs/editor/editor.main.min.css" xintegrity="sha512-T745/at+l+bnPy3CNd8BORy4liWj6yLnWR9sSiAM4KujTPaw2ctDwaqHoJaQwqotggMC9YtQbWAuVZkDvj5cuw==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+
+        /* Styles for the web component itself, now applying directly to the custom element */
+        monaco-editor-component {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        .editor-container {
+            flex-grow: 1;
+            display: flex;
+            gap: 8px;
+            margin: 1rem;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .monaco-editor-instance {
+            flex: 1;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .output-console {
+            flex: 1;
+            background-color: #282c34; /* Dark background for console */
+            color: #abb2bf; /* Light text color */
+            font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            padding: 10px;
+            overflow-y: auto;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            white-space: pre-wrap; /* Preserve whitespace and wrap lines */
+            word-break: break-all; /* Break long words */
+        }
+
+        .output-line {
+            margin-bottom: 2px;
+        }
+
+        .output-line.log { color: #abb2bf; }
+        .output-line.error { color: #e06c75; } /* Red for errors */
+        .output-line.warn { color: #e5c07b; } /* Yellow for warnings */
+        .output-line.info { color: #61afef; } /* Blue for info */
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Custom button styling adjustments for Bootstrap */
+        .btn {
+            transition: all 0.2s ease-in-out;
+            border-radius: 0.375rem; /* Bootstrap default rounded-md */
+        }
+
+        .btn-primary {
+            background-color: #0d6efd; /* Bootstrap primary blue */
+            color: white;
+            border-color: #0d6efd;
+        }
+
+        .btn-primary:hover {
+            background-color: #0b5ed7; /* Darker blue on hover */
+            border-color: #0a58ca;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d; /* Bootstrap secondary gray */
+            color: white;
+            border-color: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5c636a; /* Darker gray on hover */
+            border-color: #565e64;
+        }
+
+        .btn-outline-secondary { /* Used for language buttons */
+            background-color: transparent;
+            color: #6c757d;
+            border-color: #6c757d;
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-active {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); /* Bootstrap focus ring */
+        }
+    </style>
+</head>
+<body class="bg-light text-dark">
+
+    <monaco-editor-component></monaco-editor-component>
+
+    <script>
+        class MonacoEditorComponent extends HTMLElement {
+            constructor() {
+                super();
+                // Removed: this.attachShadow({ mode: 'open' });
+
+                this.currentView = 'single';
+                this.currentLanguage = 'javascript'; // Default to JavaScript for execution
+                this.editor = null;
+                this.editorSplit = null;
+                this.diffEditor = null;
+                this.outputDiv = null; // Reference to the output display div
+
+                // Store original console methods
+                this.originalConsoleLog = console.log;
+                this.originalConsoleError = console.error;
+                this.originalConsoleWarn = console.warn;
+                this.originalConsoleInfo = console.info;
+
+                // Default content for different file types
+                this.defaultContent = {
+                    javascript: `// JavaScript Code Example
+function greet(name) {
+    console.log('Hello, ' + name + '!');
+}
+
+greet('World');
+
+`,
+                    html: `
+    <header>
+        <h1>Welcome!</h1>
+    </header>`,
+                    css: `
+
+h1 {
+    color: #333;
+    text-align: center;
+}
+`,
+                    razor: `
+    @if (Model.ShowMessage)
+    {
+        <p>This message is conditionally rendered.</p>
+    }
+
+`
+                };
+            }
+
+            connectedCallback() {
+                this.render();
+                this.loadMonacoEditor();
+            }
+
+            render() {
+                this.innerHTML = `
+                    <div class="p-4 bg-white shadow-sm rounded-bottom d-flex flex-wrap gap-3 align-items-center justify-content-center">
+                        <h1 class="fs-4 fw-semibold text-dark me-4">Monaco Editor</h1>
+
+                        <div class="d-flex gap-2">
+                            <button id="singleViewBtn" class="singleViewBtn btn btn-primary">Single View</button>
+                            <button id="splitViewBtn" class="splitViewBtn btn btn-outline-secondary">Split View</button>
+                            <button id="diffViewBtn" class="diffViewBtn btn btn-outline-secondary">Compare Files</button>
+                            <button id="outputViewBtn" class="outputViewBtn btn btn-outline-secondary">Show Output</button>
+                        </div>
+
+                        <div class="d-flex gap-2 ms-4">
+                            <button id="jsLangBtn" class="jsLangBtn btn btn-outline-secondary" data-lang="javascript">JavaScript</button>
+                            <button id="htmlLangBtn" class="htmlLangBtn btn btn-outline-secondary" data-lang="html">HTML</button>
+                            <button id="cssLangBtn" class="cssLangBtn btn btn-outline-secondary" data-lang="css">CSS</button>
+                            <button id="cshtmlLangBtn" class="cshtmlLangBtn btn btn-outline-secondary" data-lang="razor">CSHTML</button>
+                        </div>
+                    </div>
+
+                    <div id="editorContainer" class="editor-container flex-grow-1">
+                        <div class="editor monaco-editor-instance"></div>
+                        <div class="editorSplit monaco-editor-instance hidden"></div>
+                        <div class="diffEditor monaco-editor-instance hidden"></div>
+                        <div class="outputConsole output-console hidden"></div>
+                    </div>
+                `;
+
+                // Get DOM elements directly from 'this' (the custom element)
+                this.editorSplitDiv = this.querySelector('.editorSplit');
+                this.editorDiv = this.querySelector('.editor');
+                this.diffEditorDiv = this.querySelector('.diffEditor');
+                this.outputDiv = this.querySelector('.outputConsole');
+
+                this.singleViewBtn = this.querySelector('.singleViewBtn');
+                this.splitViewBtn = this.querySelector('.splitViewBtn');
+                this.diffViewBtn = this.querySelector('.diffViewBtn');
+                this.outputViewBtn = this.querySelector('.outputViewBtn');
+
+                this.langButtons = this.querySelectorAll('[data-lang]');
+
+                // Add event listeners
+                this.singleViewBtn.addEventListener('click', () => this.setView('single'));
+                this.splitViewBtn.addEventListener('click', () => this.setView('split'));
+                this.diffViewBtn.addEventListener('click', () => this.setView('diff'));
+                this.outputViewBtn.addEventListener('click', () => this.setView('output'));
+
+                this.langButtons.forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const lang = event.target.dataset.lang;
+                        this.setLanguage(lang);
+                    });
+                });
+
+                // Handle resize events
+                window.addEventListener('resize', () => this.handleResize());
+            }
+
+            loadMonacoEditor() {
+                // Dynamically load Monaco loader script
+                const script = document.createElement('script');
+                script.src = "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/loader.js";
+                script.onload = () => {
+                    // Configure Monaco Loader once loaded
+                    window.require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs' } });
+                    window.require(['vs/editor/editor.main'], () => {
+                        this.initEditors();
+                    });
+                };
+                document.body.appendChild(script); // Append to document.body
+            }
+
+            initEditors() {
+                // Initialize the main editor
+                this.editor = monaco.editor.create(this.editorDiv, {
+                    value: this.defaultContent[this.currentLanguage],
+                    language: this.currentLanguage,
+                    theme: 'vs-light',
+                    automaticLayout: true,
+                    roundedSelection: true,
+                    scrollBeyondLastLine: false,
+                    readOnly: false,
+                    wordWrap: 'on',
+                    minimap: { enabled: false },
+                    fontSize: 14,
+                    fontFamily: 'Inter, monospace',
+                    lineNumbersMinChars: 3,
+                });
+
+                // Set initial active buttons
+                this.setActiveButton(this.singleViewBtn);
+                this.setActiveLangButton(this.currentLanguage);
+
+                // Initial setup of view
+                this.setView(this.currentView);
+            }
+
+            setActiveButton(button) {
+                const viewButtons = [this.singleViewBtn, this.splitViewBtn, this.diffViewBtn, this.outputViewBtn];
+                viewButtons.forEach(btn => {
+                    btn.classList.remove('btn-primary', 'btn-active');
+                    btn.classList.add('btn-outline-secondary');
+                });
+
+                button.classList.remove('btn-outline-secondary');
+                button.classList.add('btn-primary', 'btn-active');
+            }
+
+            setActiveLangButton(lang) {
+                this.langButtons.forEach(btn => {
+                    btn.classList.remove('btn-primary', 'btn-active');
+                    btn.classList.add('btn-outline-secondary');
+                    if (btn.dataset.lang === lang) {
+                        btn.classList.remove('btn-outline-secondary');
+                        btn.classList.add('btn-primary', 'btn-active');
+                    }
+                });
+            }
+
+            setView(view) {
+                this.currentView = view;
+                this.editorDiv.classList.add('hidden');
+                this.editorSplitDiv.classList.add('hidden');
+                this.diffEditorDiv.classList.add('hidden');
+                this.outputDiv.classList.add('hidden');
+
+                // Dispose existing editors if they are not needed
+                if (this.editor && view !== 'single' && view !== 'split') {
+                    this.editor.dispose();
+                    this.editor = null;
+                }
+                if (this.editorSplit && view !== 'split') {
+                    this.editorSplit.dispose();
+                    this.editorSplit = null;
+                }
+                if (this.diffEditor && view !== 'diff') {
+                    this.diffEditor.dispose();
+                    this.diffEditor = null;
+                }
+
+                switch (view) {
+                    case 'single':
+                        this.editorDiv.classList.remove('hidden');
+                        if (!this.editor) {
+                            this.editor = monaco.editor.create(this.editorDiv, {
+                                value: this.defaultContent[this.currentLanguage],
+                                language: this.currentLanguage,
+                                theme: 'vs-light',
+                                automaticLayout: true,
+                                roundedSelection: true,
+                                scrollBeyondLastLine: false,
+                                readOnly: false,
+                                wordWrap: 'on',
+                                minimap: { enabled: false },
+                                fontSize: 14,
+                                fontFamily: 'Inter, monospace',
+                                lineNumbersMinChars: 3,
+                            });
+                        } else {
+                            this.editor.setValue(this.defaultContent[this.currentLanguage]);
+                            monaco.editor.setModelLanguage(this.editor.getModel(), this.currentLanguage);
+                        }
+                        this.setActiveButton(this.singleViewBtn);
+                        break;
+                    case 'split':
+                        this.editorDiv.classList.remove('hidden');
+                        this.editorSplitDiv.classList.remove('hidden');
+                        if (!this.editor) {
+                            this.editor = monaco.editor.create(this.editorDiv, {
+                                value: this.defaultContent[this.currentLanguage],
+                                language: this.currentLanguage,
+                                theme: 'vs-light',
+                                automaticLayout: true,
+                                roundedSelection: true,
+                                scrollBeyondLastLine: false,
+                                readOnly: false,
+                                wordWrap: 'on',
+                                minimap: { enabled: false },
+                                fontSize: 14,
+                                fontFamily: 'Inter, monospace',
+                                lineNumbersMinChars: 3,
+                            });
+                        } else {
+                            this.editor.setValue(this.defaultContent[this.currentLanguage]);
+                            monaco.editor.setModelLanguage(this.editor.getModel(), this.currentLanguage);
+                        }
+                        if (!this.editorSplit) {
+                            this.editorSplit = monaco.editor.create(this.editorSplitDiv, {
+                                value: this.defaultContent[this.currentLanguage],
+                                language: this.currentLanguage,
+                                theme: 'vs-light',
+                                automaticLayout: true,
+                                roundedSelection: true,
+                                scrollBeyondLastLine: false,
+                                readOnly: false,
+                                wordWrap: 'on',
+                                minimap: { enabled: false },
+                                fontSize: 14,
+                                fontFamily: 'Inter, monospace',
+                                lineNumbersMinChars: 3,
+                            });
+                        } else {
+                            this.editorSplit.setValue(this.defaultContent[this.currentLanguage]);
+                            monaco.editor.setModelLanguage(this.editorSplit.getModel(), this.currentLanguage);
+                        }
+                        this.setActiveButton(this.splitViewBtn);
+                        break;
+                    case 'diff':
+                        this.diffEditorDiv.classList.remove('hidden');
+                        if (!this.diffEditor) {
+                            this.diffEditor = monaco.editor.createDiffEditor(this.diffEditorDiv, {
+                                automaticLayout: true,
+                                roundedSelection: true,
+                                scrollBeyondLastLine: false,
+                                readOnly: false,
+                                wordWrap: 'on',
+                                minimap: { enabled: false },
+                                fontSize: 14,
+                                fontFamily: 'Inter, monospace',
+                                theme: 'vs-light',
+                            });
+                        }
+                        // Set models for diff editor
+                        const originalModel = monaco.editor.createModel(this.defaultContent[this.currentLanguage], this.currentLanguage);
+                        const modifiedContent = this.defaultContent[this.currentLanguage].replace('Hello, World', 'Hello, Monaco'); // Simple modification for diff
+                        const modifiedModel = monaco.editor.createModel(modifiedContent, this.currentLanguage);
+                        this.diffEditor.setModel({
+                            original: originalModel,
+                            modified: modifiedModel
+                        });
+                        this.setActiveButton(this.diffViewBtn);
+                        break;
+                    case 'output':
+                        this.outputDiv.classList.remove('hidden');
+                        this.setActiveButton(this.outputViewBtn);
+                        // Execute code only if it's JavaScript
+                        if (this.currentLanguage === 'javascript') {
+                            this.executeCode();
+                        } else {
+                            this.appendOutput('Please switch to JavaScript mode to execute code.', 'warn');
+                        }
+                        break;
+                }
+                // Ensure layout is updated after view change
+                monaco.editor.remeasureFonts();
+            }
+
+            setLanguage(lang) {
+                this.currentLanguage = lang;
+                this.setActiveLangButton(lang);
+
+                if (this.editor) {
+                    this.editor.setValue(this.defaultContent[lang]);
+                    monaco.editor.setModelLanguage(this.editor.getModel(), lang);
+                }
+                if (this.editorSplit) {
+                    this.editorSplit.setValue(this.defaultContent[lang]);
+                    monaco.editor.setModelLanguage(this.editorSplit.getModel(), lang);
+                }
+                if (this.diffEditor) {
+                    // For diff editor, update both models with new language content
+                    const originalModel = monaco.editor.createModel(this.defaultContent[lang], lang);
+                    const modifiedContent = this.defaultContent[lang].replace('Hello, World', 'Hello, Monaco'); // Keep a simple diff
+                    const modifiedModel = monaco.editor.createModel(modifiedContent, lang);
+                    this.diffEditor.setModel({
+                        original: originalModel,
+                        modified: modifiedModel
+                    });
+                }
+            }
+
+            handleResize() {
+                if (this.editor) this.editor.layout();
+                if (this.editorSplit) this.editorSplit.layout();
+                if (this.diffEditor) this.diffEditor.layout();
+            }
+
+            // --- Output Console Logic ---
+            clearOutput() {
+                if (this.outputDiv) {
+                    this.outputDiv.innerHTML = '';
+                }
+            }
+
+            appendOutput(message, type = 'log') {
+                if (this.outputDiv) {
+                    const line = document.createElement('div');
+                    line.classList.add('output-line', type);
+                    line.textContent = message;
+                    this.outputDiv.appendChild(line);
+                    this.outputDiv.scrollTop = this.outputDiv.scrollHeight; // Scroll to bottom
+                }
+            }
+
+            executeCode() {
+                this.clearOutput();
+                const code = this.editor ? this.editor.getValue() : '';
+
+                // Temporarily override console methods
+                console.log = (...args) => {
+                    this.appendOutput(args.map(arg => String(arg)).join(' '), 'log');
+                };
+                console.error = (...args) => {
+                    this.appendOutput('ERROR: ' + args.map(arg => String(arg)).join(' '), 'error');
+                };
+                console.warn = (...args) => {
+                    this.appendOutput('WARNING: ' + args.map(arg => String(arg)).join(' '), 'warn');
+                };
+                console.info = (...args) => {
+                    this.appendOutput('INFO: ' + args.map(arg => String(arg)).join(' '), 'info');
+                };
+
+                try {
+                    // Execute the JavaScript code.
+                    // WARNING: Using eval() with arbitrary user input can be a security risk.
+                    // For a production environment, consider more secure sandboxing (e.g., Web Workers, iframes with content security policies).
+                    eval(code);
+                } catch (e) {
+                    this.appendOutput(`Execution Error: ${e.message}`, 'error');
+                } finally {
+                    // Restore original console methods
+                    console.log = this.originalConsoleLog;
+                    console.error = this.originalConsoleError;
+                    console.warn = this.originalConsoleWarn;
+                    console.info = this.originalConsoleInfo;
+                }
+            }
+        }
+
+        customElements.define('monaco-editor-component', MonacoEditorComponent);
+    </script>
+</body>
+</html>
+

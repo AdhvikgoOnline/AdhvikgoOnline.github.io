@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Popover Web Component</title>
+    <!-- Tailwind CSS for basic styling and responsiveness -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5; /* Light gray background */
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container-wrapper {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        .popover-header {
+            font-weight: 600;
+            color: #333;
+        }
+        .popover-body p {
+            margin-bottom: 0.5rem;
+        }
+        /* Custom styling for the popover trigger button */
+        .popover-trigger-button {
+            background-image: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+            border: none;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin-top: 20px; /* Space from description */
+            margin-left: 10px; /* Space between buttons */
+            margin-right: 10px; /* Space between buttons */
+        }
+        .popover-trigger-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            opacity: 0.9;
+        }
+        /* Styling for the content within the popover */
+        .popover-custom-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .popover-custom-content .text-sm {
+            font-size: 0.875rem; /* 14px */
+            color: #555;
+        }
+        .popover-custom-content .font-bold {
+            font-weight: 700;
+        }
+        .popover-loading-message, .popover-error-message {
+            padding: 10px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        .popover-error-message {
+            color: #dc3545; /* Bootstrap red */
+        }
+    </style>
+</head>
+<body>
+    <div class="container-wrapper">
+        <h1 class="text-3xl font-bold mb-4 text-gray-800">Dynamic Popover Example</h1>
+        <p class="text-gray-600 mb-6">
+            Hover over the buttons below. The first popover uses static content, while the second attempts to fetch content from a URL.
+            Note: The "Fetch Error" example is designed to show a fetch error for demonstration purposes.
+        </p>
+
+        <!-- Example 1: Static content from inner HTML -->
+        <dynamic-popover
+            data-popover-title="Product Details (Static)"
+            data-popover-placement="right"
+            data-popover-delay='{"show":0, "hide":100}'
+        >
+            <!-- This content will be moved into the Bootstrap Popover -->
+            <div class="popover-custom-content text-gray-700">
+                <img src="https://placehold.co/200x150/6a11cb/ffffff?text=Product+Image" alt="Placeholder Product Image">
+                <p class="font-bold mb-2">Awesome Gadget Pro</p>
+                <p class="text-sm">Experience the next generation of innovation with this incredible device. It features a stunning display and lightning-fast performance.</p>
+                <ul class="list-disc list-inside text-sm mt-3">
+                    <li>Long battery life</li>
+                    <li>Ultra-responsive interface</li>
+                    <li>Sleek, ergonomic design</li>
+                </ul>
+                <p class="text-right text-base font-bold text-blue-600 mt-3">$299.99</p>
+            </div>
+        </dynamic-popover>
+
+        <!-- Example 2: Dynamic content fetched from a URL -->
+        <dynamic-popover
+            data-popover-title="Fetched Content (jsonplaceholder)"
+            data-popover-placement="bottom"
+            data-trigger-text="Fetch Content"
+            data-popover-delay='{"show":0, "hide":150}'
+            data-content-url="https://jsonplaceholder.typicode.com/posts/1"
+            >
+            <!-- Fallback content or initial message (will be replaced by fetched content) -->
+            <div class="popover-custom-content text-gray-700">
+                <p>Initial content. This will be replaced if content is fetched from URL.</p>
+            </div>
+        </dynamic-popover>
+
+        <!-- Example 3: Dynamic content from a URL that might fail (for demonstration) -->
+         <dynamic-popover
+            data-popover-title="Failing Fetch Example"
+            data-popover-placement="top"
+            data-trigger-text="Fetch Error"
+            data-popover-delay='{"show":0, "hide":150}'
+            data-content-url="https://nonexistent-domain-12345.com/api/data"
+            >
+            <div class="popover-custom-content text-gray-700">
+                <p>This popover attempts to load content from a bad URL.</p>
+            </div>
+        </dynamic-popover>
+
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script>
+        /**
+         * DynamicPopover Web Component
+         * This custom element creates a Bootstrap Popover with dynamic HTML content,
+         * optionally fetched from a URL. It operates without using Shadow DOM.
+         *
+         * Usage:
+         * <dynamic-popover
+         * data-popover-title="Your Title"
+         * data-popover-placement="top|bottom|left|right|auto"
+         * data-trigger-text="Click Me"
+         * data-popover-delay='{"show":200, "hide":100}' // Optional: custom show/hide delay in ms
+         * data-content-url="https://your-api-endpoint.com/data" // Optional: URL to fetch dynamic content
+         * >
+         * <!-- Any HTML content placed here will be used as the popover's body,
+         * or as fallback/initial content if data-content-url is present. -->
+         * <div>
+         * <h3>Hello World!</h3>
+         * <p>This is dynamic content.</p>
+         * </div>
+         * </dynamic-popover>
+         */
+        class DynamicPopover extends HTMLElement {
+            constructor() {
+                super();
+                // Store the original inner HTML of the component.
+                // This HTML will be used as the popover's initial or fallback content.
+                this.popoverContentHTML = this.innerHTML;
+                this.contentLoaded = false; // Flag to ensure content is fetched only once per instance
+            }
+
+            connectedCallback() {
+                // Clear the original inner HTML so it doesn't render twice,
+                // as it will now be displayed by the Bootstrap Popover.
+                this.innerHTML = '';
+
+                // Create the button that will trigger the popover
+                const triggerButton = document.createElement('button');
+                triggerButton.type = 'button';
+                triggerButton.className = 'popover-trigger-button d-inline-flex items-center justify-center'; // Bootstrap and Tailwind for styling
+                triggerButton.textContent = this.dataset.triggerText || 'Show Popover'; // Customizable trigger text
+
+                // Append the button to the custom element
+                this.appendChild(triggerButton);
+
+                // Get custom attributes for popover configuration
+                const popoverTitle = this.dataset.popoverTitle || 'Popover Title';
+                const popoverPlacement = this.dataset.popoverPlacement || 'auto';
+                const popoverDelay = this.dataset.popoverDelay ? JSON.parse(this.dataset.popoverDelay) : { show: 0, hide: 100 }; // Default hide delay to 100ms
+                const contentUrl = this.dataset.contentUrl;
+
+                // Determine initial popover content
+                let initialContent = this.popoverContentHTML;
+                if (contentUrl) {
+                    initialContent = `<div class="popover-loading-message">Loading content...</div>`;
+                }
+
+                // Initialize the Bootstrap Popover
+                const popover = new bootstrap.Popover(triggerButton, {
+                    html: true, // Allow HTML content in the popover
+                    title: popoverTitle, // Set the title from the data attribute
+                    content: () => initialContent, // Initial content (could be loading message or static HTML)
+                    placement: popoverPlacement, // Set the placement from the data attribute
+                    trigger: 'hover focus', // Popover shows on hover and focus
+                    delay: popoverDelay, // Apply the delay for showing/hiding
+                    sanitize: false // Set to false if you are sure your HTML content is safe. Use with caution.
+                });
+
+                // Add an event listener for when the popover is shown
+                triggerButton.addEventListener('shown.bs.popover', async () => {
+                    if (contentUrl && !this.contentLoaded) {
+                        try {
+                            // Find the popover body element
+                            // Bootstrap creates the popover element as a sibling to the body or trigger's parent
+                            // We need to find the currently active popover for this specific trigger.
+                            const currentPopoverElement = document.querySelector('.popover.show[id^="popover"]'); // Select active popover
+                            const popoverBody = currentPopoverElement ? currentPopoverElement.querySelector('.popover-body') : null;
+
+                            if (popoverBody) {
+                                popoverBody.innerHTML = `<div class="popover-loading-message">Fetching content...</div>`; // Update to fetching message
+                                console.log(`Attempting to fetch content from: ${contentUrl}`);
+                                const response = await fetch(contentUrl);
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+                                const data = await response.json(); // Assuming JSON response, adjust if expecting HTML
+                                // Here, we'll just pretty-print the JSON data for demonstration.
+                                // In a real application, you would render this data into HTML.
+                                popoverBody.innerHTML = `<div class="popover-custom-content">
+                                    <h3 class="font-bold text-lg mb-2 text-indigo-700">Fetched Data:</h3>
+                                    <pre class="text-xs text-left overflow-auto p-2 bg-gray-100 rounded">${JSON.stringify(data, null, 2)}</pre>
+                                </div>`;
+                                this.contentLoaded = true; // Mark as loaded
+                                console.log(`Successfully fetched content from: ${contentUrl}`, data);
+                                // Re-position popover after content change if needed (Bootstrap often handles this implicitly)
+                                popover.update();
+                            }
+                        } catch (error) {
+                            console.error('Failed to fetch popover content:', error);
+                            const currentPopoverElement = document.querySelector('.popover.show[id^="popover"]');
+                            const popoverBody = currentPopoverElement ? currentPopoverElement.querySelector('.popover-body') : null;
+                            if (popoverBody) {
+                                popoverBody.innerHTML = `<div class="popover-error-message">Error loading content: ${error.message}</div>`;
+                                popover.update(); // Attempt to re-position with error message
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Define the custom element
+        customElements.define('dynamic-popover', DynamicPopover);
+    </script>
+</body>
+</html>

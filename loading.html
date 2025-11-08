@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AmCharts Web Component</title>
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Adjust margin for the first chart to be visible initially */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            color: #6c757d;
+            border-radius: 0.75rem;
+            z-index: 10;
+        }
+        my-component, my-component1 {
+            position: relative;
+            display: block;
+            width: 100%;
+            height: calc(100vh + 5rem);
+            overflow: hidden;
+        }
+        .loading { position:relative; }
+        .loading:before {
+            content: 'Loading ...';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 10000;
+            text-align: center;
+            opacity: 0.6;
+            min-height: 2rem;
+            cursor: wait;
+            color: var(--bs-body-color);
+            animation-duration: 1.25s;
+            animation-fill-mode: forwards;
+            animation-iteration-count: infinite;
+            animation-name: placeHolderShimmer;
+            animation-timing-function: linear;
+            background: darkgray;
+            background: linear-gradient(to right, #eeeeee 10%, #dddddd 18%, #eeeeee 33%);
+            background-size: 800px 104px;
+        }
+        @keyframes placeHolderShimmer{
+            0%{
+                background-position: -468px 0
+            }
+            100%{
+                background-position: 468px 0
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div style="height: calc(100vh + 15rem);" id="squarecontainer">
+    <h1>Life cycle callbacks test</h1>
+
+    <div>
+      <button class="add">Add custom-square to DOM</button>
+      <button class="update">Update attributes</button>
+      <button class="remove">Remove custom-square from DOM</button>
+    </div>
+
+    </div>
+    <my-component></my-component>
+    <my-component></my-component>
+    <my-component></my-component>
+    <my-component></my-component>
+    <my-component1></my-component1>
+    <my-component1></my-component1>
+    <my-component1></my-component1>
+    <my-component1></my-component1>
+    <my-component1></my-component1>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script>
+        /**
+         * Dynamically loads external CSS and JavaScript files and executes a callback function
+         * once all resources have been loaded.
+         *
+         * @param {string[]} cssUrls - An array of URLs for CSS files to load.
+         * @param {string[]} jsUrls - An array of URLs for JavaScript files to load.
+         * @param {Function} callback - The function to execute after all resources are loaded.
+         */
+        function loadCssJs(cssUrls, jsUrls, callback) {
+            const head = document.head;
+            const body = document.body;
+
+            // Function to load a single CSS file
+            const loadCss = (url) => {
+                const links = document.querySelectorAll(`link[href="${url}"]`);
+                if (links.length > 0) {
+                    // CSS already loaded
+                    return Promise.resolve();
+                }
+                return new Promise((resolve, reject) => {
+                    const link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = url;
+                    link.onload = () => {
+                        console.log(`CSS loaded: ${url}`);
+                        resolve();
+                    };
+                    link.onerror = () => {
+                        console.error(`Failed to load CSS: ${url}`);
+                        reject(new Error(`Failed to load CSS: ${url}`));
+                    };
+                    head.appendChild(link);
+                });
+            };
+
+            // Function to load a single JavaScript file
+            const loadJs = (url) => {
+                const scripts = document.querySelectorAll(`script[src="${url}"]`);
+                if (scripts.length > 0) {
+                    // Script already loaded
+                    return Promise.resolve();
+                }
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = url;
+                    script.async = true; // Load asynchronously
+                    script.onload = () => {
+                        console.log(`JS loaded: ${url}`);
+                        resolve();
+                    };
+                    script.onerror = () => {
+                        console.error(`Failed to load JS: ${url}`);
+                        reject(new Error(`Failed to load JS: ${url}`));
+                    };
+                    body.appendChild(script);
+                });
+            };
+
+            //showMessage('Loading resources...', 'info');
+
+            // Create promises for all CSS and JS files
+            const cssPromises = cssUrls.map(loadCss);
+            const jsPromises = jsUrls.map(loadJs);
+
+            // Wait for all promises to resolve
+            Promise.all([...cssPromises, ...jsPromises])
+                .then(() => {
+                    console.log('All external resources loaded successfully!');
+                    //showMessage('All resources loaded! Executing task...', 'success');
+                    callback(); // Execute the task
+                })
+                .catch((error) => {
+                    console.error('Error loading one or more resources:', error);
+                    //showMessage(`Error loading resources: ${error.message}`, 'error');
+                });
+        }
+
+        function GeneralCheckup() {
+            const dswiper = document.querySelectorAll(".slider-container");
+            if (dswiper.length > 0)
+                loadCssJs(['https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css']
+                    , ['https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', 'https://afapi.adhvikgoonline.com/aiscripts/aiswiper.js']
+                    , () => { LoadSwiper(dswiper) });
+
+        }
+
+        // Define the AmChartWebComponent custom element
+        class MyWebComponent extends HTMLElement {
+            static get observedAttributes() {
+                // Observe the 'config' attribute for changes
+                return ['config'];
+            }
+
+            constructor() {
+                super();
+                // this.chartRoot = null; // To store the AmCharts root instance
+                this.Container = this; // When using 'is', the element itself is the container
+                this.Loaded = false; // Flag to track if AmCharts libraries are loaded
+                this.loadingPromise = null; // To store the promise of loading libraries
+                this.loadingOverlay = null; // To store the loading overlay element
+                this.Rendered = false; // New flag to track if the chart has been rendered
+                this.intersectionObserver = null; // To store the IntersectionObserver instance
+            }
+
+            connectedCallback() {
+                // Create and append a loading overlay
+                this.loadingOverlay = document.createElement('div');
+                this.loadingOverlay.className = 'loading-overlay';
+                this.loadingOverlay.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div> <span class="ms-2">Loading ...</span>';
+                this.appendChild(this.loadingOverlay);
+
+                // Set up IntersectionObserver for lazy loading
+                this.intersectionObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting && !this.Rendered) {
+                            // If the element is visible and chart not yet rendered, load and render
+
+                            loadCssJs(['https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css']
+                                , ['https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', 'https://afapi.adhvikgoonline.com/aiscripts/aiswiper.js']
+                                , () => { 
+                                    this.Loaded = true;
+                                    this.loadingOverlay.style.display = 'none'; // Hide loading overlay
+                                    this.render();
+                                    this.Rendered = true; // Mark as rendered
+                                });
+
+                            observer.disconnect(); // Stop observing once loaded
+                        }
+                    });
+                }, {
+                    // root: null, // Use the viewport as the root
+                    // rootMargin: '0px',
+                    threshold: 0.1 // Trigger when 10% of the element is visible
+                });
+
+                this.intersectionObserver.observe(this); // Start observing this element
+            }
+
+            disconnectedCallback() {
+                // Disconnect observer when the element is removed from the DOM
+                if (this.intersectionObserver) {
+                    this.intersectionObserver.disconnect();
+                }
+                // Dispose of any existing root to prevent memory leaks.
+                // if (this.chartRoot) {
+                //     this.chartRoot.dispose();
+                //     this.chartRoot = null;
+                // }
+            }
+
+            attributeChangedCallback(name, oldValue, newValue) {
+                // This method is called when an observed attribute changes.
+                if (name === 'config' && oldValue !== newValue) {
+                    // If the config attribute changes, and chart is already rendered, re-render
+                    if (this.Rendered) {
+                        this.render();
+                    } else if (this.loadingPromise) {
+                        // If config changes before rendering, but loading is in progress,
+                        // ensure it renders once libraries are ready (and it becomes visible)
+                        this.loadingPromise.then(() => {
+                            // Only render if it's visible, otherwise wait for intersection observer
+                            if (this.intersectionObserver && this.intersectionObserver.root) { // Check if observer is active
+                                const entry = this.intersectionObserver.takeRecords().find(rec => rec.target === this);
+                                if (entry && entry.isIntersecting) {
+                                    this.render();
+                                }
+                            }
+                        });
+                    }
+                    // If not yet visible and no loading in progress, the IntersectionObserver will handle it.
+                }
+            }
+
+            render() {
+                // Only proceed if AmCharts libraries are confirmed loaded
+                if (!this.Loaded) {
+                    console.warn('libraries not loaded yet.');
+                    return;
+                }
+
+                // // Dispose of any existing chart root before creating a new one
+                // if (this.chartRoot) {
+                //     this.chartRoot.dispose();
+                // }
+
+                try {
+                    // Parse the config attribute as a JSON object
+                    const config = JSON.parse(this.getAttribute('config') || '{}');
+                    
+                    this.innerHTML = '<h2>1</h2>'; // Clear any existing content (including loading overlay)
+                    console.log("rendering");
+                    // Handle XYChart specific configurations (axes, series)
+
+                } catch (error) {
+                    console.error('Error rendering:', error);
+                }
+            }
+        }
+
+        // Define the custom element, extending 'div'
+        customElements.define('my-component', MyWebComponent);
+
+//==========================================================================================
+        // Define the AmChartWebComponent custom element
+        class MyWebComponent1 extends HTMLElement {
+            static get observedAttributes() {
+                // Observe the 'config' attribute for changes
+                return ['config'];
+            }
+
+            constructor() {
+                super();
+                this.Container = this; // When using 'is', the element itself is the container
+                this.Loaded = false; // Flag to track if AmCharts libraries are loaded
+                this.loadingPromise = null; // To store the promise of loading libraries
+                this.Rendered = false; // New flag to track if the chart has been rendered
+                this.intersectionObserver = null; // To store the IntersectionObserver instance
+            }
+
+            connectedCallback() {
+                this.classList.add('loading');
+
+                // Set up IntersectionObserver for lazy loading
+                this.intersectionObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting && !this.Rendered) {
+                            // If the element is visible and chart not yet rendered, load and render
+
+                            loadCssJs(['https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css']
+                                , ['https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', 'https://afapi.adhvikgoonline.com/aiscripts/aiswiper.js']
+                                , () => { 
+                                    this.Loaded = true;
+                                    this.classList.remove('loading');
+                                    this.render();
+                                    this.Rendered = true; // Mark as rendered
+                                });
+
+                            observer.disconnect(); // Stop observing once loaded
+                        }
+                    });
+                }, {
+                    threshold: 0.1 // Trigger when 10% of the element is visible
+                });
+
+                this.intersectionObserver.observe(this); // Start observing this element
+            }
+
+            disconnectedCallback() {
+                // Disconnect observer when the element is removed from the DOM
+                if (this.intersectionObserver) {
+                    this.intersectionObserver.disconnect();
+                }
+            }
+
+            attributeChangedCallback(name, oldValue, newValue) {
+                // This method is called when an observed attribute changes.
+                if (name === 'config' && oldValue !== newValue) {
+                    // If the config attribute changes, and chart is already rendered, re-render
+                    if (this.Rendered) {
+                        this.render();
+                    } else if (this.loadingPromise) {
+                        // If config changes before rendering, but loading is in progress,
+                        // ensure it renders once libraries are ready (and it becomes visible)
+                        this.loadingPromise.then(() => {
+                            // Only render if it's visible, otherwise wait for intersection observer
+                            if (this.intersectionObserver && this.intersectionObserver.root) { // Check if observer is active
+                                const entry = this.intersectionObserver.takeRecords().find(rec => rec.target === this);
+                                if (entry && entry.isIntersecting) {
+                                    this.render();
+                                }
+                            }
+                        });
+                    }
+                    // If not yet visible and no loading in progress, the IntersectionObserver will handle it.
+                }
+            }
+
+            render() {
+                // Only proceed if AmCharts libraries are confirmed loaded
+                if (!this.Loaded) {
+                    console.warn('libraries not loaded yet.');
+                    return;
+                }
+
+                try {
+                    // Parse the config attribute as a JSON object
+                    const config = JSON.parse(this.getAttribute('config') || '{}');
+                    
+                    this.innerHTML = '<h2>1</h2>'; // Clear any existing content (including loading overlay)
+                    console.log("rendering");
+
+                } catch (error) {
+                    console.error('Error rendering:', error);
+                }
+            }
+        }
+
+        // Define the custom element, extending 'div'
+if(!customElements.get('my-component1'))
+        customElements.define('my-component1', MyWebComponent1);
+
+//==========================================================================================        
+        // --- Chart Configurations defined in JavaScript ---
+
+        const columnConfig = {
+            "type": "test",
+            "data": [
+                { "category": "Jan", "value": 2025 },
+                { "category": "Feb", "value": 1882 },
+                { "category": "Mar", "value": 1809 },
+            ]
+        };
+
+        // Get references to the custom elements and set their configurations
+        document.addEventListener('DOMContentLoaded', () => {
+            const columnChartElement = document.getElementById('columnChart');
+            if (columnChartElement) {
+                columnChartElement.setAttribute('config', JSON.stringify(columnChartConfig));
+            }
+        });
+
+// Create a class for the element
+class Square extends HTMLElement {
+  // Specify observed attributes so that
+  // attributeChangedCallback will work
+  static get observedAttributes() {
+    return ["color", "size"];
+  }
+
+  constructor() {
+    // Always call super first in constructor
+    super();
+
+    const shadow = this.attachShadow({ mode: "open" });
+
+    const div = document.createElement("div");
+    const style = document.createElement("style");
+    shadow.appendChild(style);
+    shadow.appendChild(div);
+  }
+
+  connectedCallback() {
+    console.log("Custom square element added to page.");
+    updateStyle(this);
+  }
+
+  disconnectedCallback() {
+    console.log("Custom square element removed from page.");
+  }
+
+  adoptedCallback() {
+    console.log("Custom square element moved to new page.");
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    console.log("Custom square element attributes changed.");
+    updateStyle(this);
+  }
+}
+
+customElements.define("custom-square", Square);
+
+function updateStyle(elem) {
+  const shadow = elem.shadowRoot;
+  shadow.querySelector("style").textContent = `
+    div {
+      width: ${elem.getAttribute("size")}px;
+      height: ${elem.getAttribute("size")}px;
+      background-color: ${elem.getAttribute("color")};
+    }
+  `;
+}
+
+const add = document.querySelector(".add");
+const update = document.querySelector(".update");
+const remove = document.querySelector(".remove");
+const squarecontainer = document.getElementById("squarecontainer");
+let square;
+
+update.disabled = true;
+remove.disabled = true;
+
+function random(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+add.onclick = function () {
+  // Create a custom square element
+  square = document.createElement("custom-square");
+  square.setAttribute("size", "100");
+  square.setAttribute("color", "red");
+  squarecontainer.appendChild(square);
+  //document.body.appendChild(square);
+
+  update.disabled = false;
+  remove.disabled = false;
+  add.disabled = true;
+};
+
+update.onclick = function () {
+  // Randomly update square's attributes
+  square.setAttribute("size", random(50, 200));
+  square.setAttribute(
+    "color",
+    `rgb(${random(0, 255)}, ${random(0, 255)}, ${random(0, 255)})`
+  );
+};
+
+remove.onclick = function () {
+  // Remove the square
+  squarecontainer.removeChild(square);
+  //document.body.removeChild(square);
+
+  update.disabled = true;
+  remove.disabled = true;
+  add.disabled = false;
+};
+
+    </script>
+</body>
+
+</html>

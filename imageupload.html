@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload Web Component</title>
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9Oer2dICz0AFQv/d+AFm/e4W9+a0qN+n5V+q+yXWn+i" crossorigin="anonymous">
+    <style>
+        /* Custom styles for the web component */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* Styling for the custom element itself */
+        image-uploader {
+            display: block; /* Ensures the custom element takes up space */
+            width: 100%;
+            max-width: 400px;
+            background-color: #fff;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5eeeb; /* Subtle border instead of shadow */
+        }
+
+        /* Hide the default file input button */
+        #imageInput {
+            display: none;
+        }
+
+        /* Custom styling for the upload area */
+        #uploadArea {
+            min-height: 12rem; /* h-48 equivalent */
+            display: flex;
+            flex-direction: column; /* Allow content to stack */
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #dee2e6; /* border-2 border-dashed border-gray-300 equivalent */
+            border-radius: 0.375rem; /* rounded-md equivalent */
+            cursor: pointer;
+            transition: border-color 0.15s ease-in-out; /* transition-colors equivalent */
+            position: relative; /* For positioning the remove button */
+            text-align: center; /* Center text for drag instructions */
+        }
+
+        #uploadArea.drag-over {
+            border-color: #0d6efd; /* Highlight on drag-over */
+            background-color: #e9ecef; /* Slight background change */
+        }
+
+        #uploadArea:hover {
+            border-color: #0d6efd; /* hover:border-blue-500 equivalent */
+        }
+
+        #imagePreview {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 0.375rem; /* rounded-md equivalent */
+            cursor: zoom-in; /* Indicate zoom functionality */
+            display: block; /* Ensure image behaves as a block element */
+        }
+
+        /* Styling for the remove button */
+        #removeImageBtn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            z-index: 10; /* Ensure it's above the image */
+            display: none; /* Hidden by default */
+        }
+
+        /* Styling for the zoom modal overlay */
+        .zoom-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; /* High z-index to overlay everything */
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0;
+            pointer-events: none; /* Allow clicks through when hidden */
+        }
+
+        .zoom-modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto; /* Enable clicks when shown */
+        }
+
+        .zoom-modal-content {
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .zoom-modal-content img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .zoom-modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 2rem;
+            color: #fff;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Our custom image-uploader web component -->
+    <image-uploader></image-uploader>
+
+    <script>
+        // Define the custom web component for image uploading
+        class ImageUploader extends HTMLElement {
+            constructor() {
+                super(); // Call the parent HTMLElement constructor
+                this.defaultPlaceholder = "https://placehold.co/150x150/e0e0e0/ffffff?text=No+Image";
+            }
+
+            connectedCallback() {
+                // This method is called when the element is added to the DOM.
+                this.render(); // Render the component's internal HTML
+
+                // Get references to internal elements after they are rendered
+                this.fileInput = this.querySelector('#imageInput');
+                this.previewImage = this.querySelector('#imagePreview');
+                this.uploadStatus = this.querySelector('#uploadStatus');
+                this.uploadArea = this.querySelector('#uploadArea');
+                this.removeImageBtn = this.querySelector('#removeImageBtn');
+                this.zoomModal = this.querySelector('#zoomModal');
+                this.zoomedImage = this.querySelector('#zoomedImage');
+                this.zoomCloseBtn = this.querySelector('#zoomCloseBtn');
+                this.dragDropText = this.querySelector('#dragDropText');
+
+
+                // Add event listeners
+                this.fileInput.addEventListener('change', this.handleFileSelect.bind(this));
+                this.uploadArea.addEventListener('click', (e) => {
+                    // Only open file input if the click is not on the remove button or image preview (for zoom)
+                    if (e.target !== this.removeImageBtn && e.target !== this.previewImage) {
+                         this.fileInput.click();
+                    }
+                });
+
+                this.removeImageBtn.addEventListener('click', this.clearImage.bind(this));
+                this.previewImage.addEventListener('click', this.openZoom.bind(this));
+                this.zoomCloseBtn.addEventListener('click', this.closeZoom.bind(this));
+                this.zoomModal.addEventListener('click', (e) => {
+                    // Close modal if clicking outside the image itself
+                    if (e.target === this.zoomModal) {
+                        this.closeZoom();
+                    }
+                });
+
+                // Add Drag and Drop Event Listeners
+                this.uploadArea.addEventListener('dragover', this.handleDragOver.bind(this));
+                this.uploadArea.addEventListener('dragleave', this.handleDragLeave.bind(this));
+                this.uploadArea.addEventListener('drop', this.handleDrop.bind(this));
+            }
+
+            render() {
+                // Set the inner HTML of the custom element using Bootstrap classes
+                this.innerHTML = `
+                    <div class="d-flex flex-column align-items-center justify-content-center p-4">
+                        <h3 class="h5 mb-4 text-dark">Upload Your Image</h3>
+                        <div id="uploadArea" class="position-relative w-100 rounded">
+                            <input type="file" id="imageInput" accept="image/*">
+                            <img id="imagePreview" src="${this.defaultPlaceholder}" alt="Image Preview" class="img-fluid">
+                            <p id="dragDropText" class="text-muted mt-2">Click or drag an image here</p>
+                            <button id="removeImageBtn" class="btn btn-danger btn-sm rounded-circle p-0" style="width: 28px; height: 28px; display: none;">
+                                &times; <!-- Unicode for multiplication sign (often used as close icon) -->
+                            </button>
+                        </div>
+                        <div id="uploadStatus" class="mt-4 text-center"></div>
+                    </div>
+
+                    <!-- Zoom Modal -->
+                    <div id="zoomModal" class="zoom-modal-overlay">
+                        <div class="zoom-modal-content">
+                            <img id="zoomedImage" src="" alt="Zoomed Image">
+                            <button id="zoomCloseBtn" class="zoom-modal-close">&times;</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            handleFileSelect(event) {
+                const file = event.target.files ? event.target.files[0] : null; // Get the first selected file
+
+                if (file && file.type.startsWith('image/')) {
+                    // Display image preview
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.previewImage.src = e.target.result;
+                        this.previewImage.style.display = 'block'; // Show image
+                        this.dragDropText.style.display = 'none'; // Hide drag/drop text
+                        this.uploadStatus.textContent = 'Image selected. Uploading...';
+                        this.uploadStatus.className = 'mt-4 text-center text-primary';
+                        this.removeImageBtn.style.display = 'block'; // Show remove button
+
+                        // Automatically call the upload API
+                        this.uploadImage(file);
+                    };
+                    reader.readAsDataURL(file); // Read the file as a data URL for preview
+                } else {
+                    this.clearImage(); // If no file selected (e.g., dialog cancelled or invalid file), clear
+                    if (file && !file.type.startsWith('image/')) {
+                        this.uploadStatus.textContent = 'Please select an image file.';
+                        this.uploadStatus.className = 'mt-4 text-center text-danger';
+                    }
+                }
+            }
+
+            // New method to clear the image and reset state
+            clearImage() {
+                this.previewImage.src = this.defaultPlaceholder;
+                this.previewImage.style.display = 'none'; // Hide image
+                this.dragDropText.style.display = 'block'; // Show drag/drop text
+                this.fileInput.value = ''; // Clear the file input
+                this.uploadStatus.textContent = 'No image selected.';
+                this.uploadStatus.className = 'mt-4 text-center text-muted';
+                this.removeImageBtn.style.display = 'none'; // Hide remove button
+                this.uploadArea.classList.remove('drag-over'); // Remove drag-over class
+            }
+
+            // New method to open the zoomed image modal
+            openZoom() {
+                if (this.previewImage.src && this.previewImage.src !== this.defaultPlaceholder) {
+                    this.zoomedImage.src = this.previewImage.src;
+                    this.zoomModal.classList.add('show');
+                    document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
+                }
+            }
+
+            // New method to close the zoomed image modal
+            closeZoom() {
+                this.zoomModal.classList.remove('show');
+                this.zoomedImage.src = ''; // Clear source to prevent memory leaks
+                document.body.style.overflow = ''; // Restore scrolling
+            }
+
+            async uploadImage(file) {
+                const formData = new FormData();
+                formData.append('image', file); // Append the file to the form data
+
+                // Placeholder API endpoint. Replace with your actual API endpoint.
+                const apiUrl = 'https://jsonplaceholder.typicode.com/posts'; // A public fake API for testing POST requests
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        body: formData,
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        this.uploadStatus.textContent = 'Upload successful!';
+                        this.uploadStatus.className = 'mt-4 text-center text-success';
+                        console.log('Upload successful:', result);
+                    } else {
+                        this.uploadStatus.textContent = `Upload failed: ${response.statusText}`;
+                        this.uploadStatus.className = 'mt-4 text-center text-danger';
+                        console.error('Upload failed:', response.statusText);
+                    }
+                } catch (error) {
+                    this.uploadStatus.textContent = `Upload error: ${error.message}`;
+                    this.uploadStatus.className = 'mt-4 text-center text-danger';
+                    console.error('Network or other error during upload:', error);
+                }
+            }
+
+            // Drag and Drop Handlers
+            handleDragOver(event) {
+                event.preventDefault(); // Prevent default behavior to allow drop
+                this.uploadArea.classList.add('drag-over');
+            }
+
+            handleDragLeave(event) {
+                event.preventDefault();
+                this.uploadArea.classList.remove('drag-over');
+            }
+
+            handleDrop(event) {
+                event.preventDefault(); // Prevent default behavior (e.g., opening file in browser)
+                this.uploadArea.classList.remove('drag-over');
+
+                const files = event.dataTransfer.files;
+                if (files.length > 0) {
+                    // Call handleFileSelect with the dropped file
+                    this.handleFileSelect({ target: { files: [files[0]] } });
+                }
+            }
+        }
+
+        // Register the custom element with the browser
+        customElements.define('image-uploader', ImageUploader);
+    </script>
+</body>
+</html>

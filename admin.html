@@ -149,68 +149,147 @@
         <header class="d-flex justify-content-between align-items-center border-bottom">
             <nav class="navbar navbar-expand-lg w-100" aria-label="Main navigation">
                 <div class="container-fluid">
-                    <a class="navbar-brand me-auto" href="#">Offcanvas navbar</a>
-                    <button class="btn btn-outline-secondary border-0 d-md-none" type="button" id="navbarSideCollapse" data-bs-toggle="collapse" data-bs-target="#navbarsExampleDefault" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <div class="me-auto d-md-none">
+                        <img src="[cpath]/img/logom.png" alt="Logo" style="max-height:3rem;" />
+                    </div>
+                    <div id="curTimer" class="text-bg-warning py-1 px-2 me-3 fs-4 fw-bold"><watch-time class="fs-4 fw-bold"></watch-time></div>
+                    <button class="btn btn-outline-secondary border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mainMenu" aria-controls="mainMenu" aria-expanded="false" aria-label="Toggle Main navigation">
                         <i class="bi-three-dots"></i>
                     </button>
-                    <button class="btn btn-outline-secondary border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+                    <button class="btn btn-outline-secondary border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle Sidebar navigation">
                         <i class="bi-three-dots-vertical"></i>
                     </button>
-
-                    <div class="collapse navbar-collapse offcanvas-collapse" id="navbarsExampleDefault">
-                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                            <li class="nav-item">
-                                <a class="nav-link active" aria-current="page" href="#">Dashboard</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">Notifications</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">Profile</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">Switch account</a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Settings</a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#">Action</a></li>
-                                    <li><a class="dropdown-item" href="#">Another action</a></li>
-                                    <li><a class="dropdown-item" href="#">Something else here</a></li>
-                                </ul>
-                            </li>
-                            <li>
-
-                            </li>
-                        </ul>
-                        <form class="d-flex" role="search">
-                            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-                            <button class="btn btn-outline-success" type="submit">Search</button>
-                        </form>
-                        <a class="btn btn-outline-secondary border-0 ms-3" data-bs-toggle="offcanvas" href="#offcanvasExample" role="button" aria-controls="offcanvasExample">
-                            <i class="bi-gear"></i>
-                        </a>
-                        <div class="dropdown mx-3">
-                            <a href="#" class="d-flex align-items-center link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
-                                <strong>mdo</strong>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end text-small shadow">
-                                <li><a class="dropdown-item" href="#">New project...</a></li>
-                                <li><a class="dropdown-item" href="#">Settings</a></li>
-                                <li><a class="dropdown-item" href="#">Profile</a></li>
-                                <li>
-                                    <hr class="dropdown-divider">
+                    <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="mainMenu" aria-labelledby="Main navigation">
+                        <div class="offcanvas-header">
+                            <h5 class="offcanvas-title" id="offcanvasNavbar2Label">Main Menu</h5> 
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                        </div>
+                        <div class="offcanvas-body">
+                            <form class="d-flex">
+                                <div class="input-group">
+                                    <input class="form-control mr-2" type="search" placeholder="Search" aria-label="Search">
+                                    <button class="btn border" type="submit">
+                                        <i class="bi-search"></i>
+                                    </button>
+                                </div>
+                            </form>
+                            <ul class="navbar-nav ms-auto align-items-center">
+                                <li class="nav-item"> <a onclick="location.reload(true);" class="nav-link d-flex gap-2 align-items-center" title="reload"><i class="bi-arrow-clockwise"></i><span class="d-md-none d-block">Reload</span></a>
                                 </li>
-                                <li><a class="dropdown-item" href="#">Sign out</a></li>
+                                <li class="nav-item"> <a onclick="location.reload(true);" class="nav-link d-flex gap-2 align-items-center" title="json Data"><i class="bi-signpost-split"></i><span class="d-md-none d-block">Reload</span></a>
+                                </li>
+                                <li class="nav-item"> <a data-menu="298" data-style="min-width: 100vw;" class="nav-link d-flex gap-2 align-items-center callmenud" title="Client Access"><i class="bi-folder-symlink"></i><span class="d-md-none d-block">Client Access</span></a>
+                                </li>
+                                <li class="nav-item"> <a data-menu="373" data-style="min-width: 100vw;" class="nav-link d-flex gap-2 align-items-center callmenud showdialog" title="API CRUD Select Dropdown"><i class="bi-bank"></i><span class="d-md-none d-block">Manage APIs</span></a>
+                                </li>
+                                <li class="nav-item"> <a id="activeformparameters" class="nav-link d-flex gap-2 align-items-center" title="Active Form Info"><i class="bi-info-square"></i><span class="d-md-none d-block">Form</span></a>
+                                </li>
+                                <li class="nav-item"> <a data-menu="20" data-style="min-width: 100vw;" class="nav-link d-flex gap-2 align-items-center callmenud showdialog" title="Error API"><i class="bi-bug"></i><span class="d-md-none d-block">Errors</span></a>
+                                </li>
+                                <li class="nav-item"> <a data-menu="21" data-style="min-width: 100vw;" class="nav-link d-flex gap-2 align-items-center callmenud" title="Website Files"><i class="bi-file-code"></i><span class="d-none">Website Files</span></a>
+                                </li>
+                                <li class="nav-item"> <a data-menu="394" data-style="min-width: 100vw;" class="nav-link d-flex gap-2 align-items-center callmenud showdialog" title="Form"><i class="bi-link"></i><span class="d-md-none d-block">Form</span></a>
+                                </li>
+                                <li class="nav-item"> <a data-menu="307" data-style="min-width: 100vw;" class="nav-link d-flex gap-2 align-items-center callmenud" title="Project"><i class="bi-ui-checks"></i><span class="d-md-none d-block">Project</span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link d-flex gap-2 align-items-center" aria-current="page" href="home" target="_blank" title="Public Site">
+                                        <i class="bi-globe"></i>
+                                        <span class="d-md-none d-block">Public Site</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="nav-link d-flex gap-2 align-items-center" data-bs-toggle="offcanvas" href="#offcanvasExample" role="button" aria-controls="offcanvasExample">
+                                        <i class="bi-gear"></i>
+                                    </a>
+                                </li>
+                                <li class="nav-item py-2 py-lg-1 col-12 col-lg-auto">
+                                    <div class="vr d-none d-lg-flex h-100 mx-lg-2 text-white"></div>
+                                    <hr class="d-lg-none my-2 text-white-50">
+                                </li>
+                
+                                <li class="nav-item dropdown">
+                                    <button type="button" class="nav-link d-flex gap-2 align-items-center dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bs-display="static">
+                                        <i class="bi-file-earmark-text"></i>
+                                        <span class="d-lg-none ms-2">Open Forms</span>
+                                        <sup id="openbadge" class="badge position-absolute top-0 start-100 translate-middle rounded-pill bg-secondary">0</sup>
+                                    </button>
+                                    <ul id="openforms" class="dropdown-menu dropdown-menu-end">
+                                    </ul>
+                                </li>
+                                <li class="nav-item py-2 py-lg-1 col-12 col-lg-auto">
+                                    <div class="vr d-none d-lg-flex h-100 mx-lg-2 text-white"></div>
+                                    <hr class="d-lg-none my-2 text-white-50">
+                                </li>
+                                [Adhvikwebx`75_65`1-o-F099017```` /]
+                                <li class="nav-item col-6 col-lg-auto">
+                                    <a class="nav-link py-2 px-0 px-lg-2" href="logout.aspx"><i class="bi bi-box-arrow-right"></i>
+                                        <small class="d-lg-none ms-2">Logout</small>
+                                    </a>
+                                </li>
+                            </ul>        
+                        </div>
+                    </div>
+
+
+                        <!-- <div class="dropdown mx-3">
+                                        <a href="#"
+                                            class="d-flex align-items-center link-body-emphasis text-decoration-none dropdown-toggle"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                            <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
+                                            <strong>mdo</strong>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end text-small shadow">
+                                            <li><a class="dropdown-item" href="#">New project...</a></li>
+                                            <li><a class="dropdown-item" href="#">Settings</a></li>
+                                            <li><a class="dropdown-item" href="#">Profile</a></li>
+                                            <li>
+                                                <hr class="dropdown-divider">
+                                            </li>
+                                            <li><a class="dropdown-item" href="#">Sign out</a></li>
+                                        </ul>
+                                    </div> -->
+<!--             
+                    <div class="collapse navbar-collapse offcanvas-collapse" id="navbarsExampleDefault">
+                    </div> -->
+                </div>
+            </nav>
+    
+        </header>
+        <main>
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark" aria-label="Offcanvas navbar large">
+                <div class="container-fluid"> 
+                    <a class="navbar-brand" href="#">Responsive offcanvas navbar</a> 
+                    <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar2" aria-controls="offcanvasNavbar2" aria-label="Toggle navigation"> 
+                        <span class="navbar-toggler-icon"></span> 
+                    </button>
+                    <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasNavbar2" aria-labelledby="offcanvasNavbar2Label">
+                        <div class="offcanvas-header">
+                            <h5 class="offcanvas-title" id="offcanvasNavbar2Label">Offcanvas</h5> 
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                        </div>
+                        <div class="offcanvas-body">
+                            <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                                <li class="nav-item"> <a class="nav-link active" aria-current="page" href="#">Home</a> </li>
+                                <li class="nav-item"> <a class="nav-link" href="#">Link</a> </li>
+                                <li class="nav-item dropdown"> <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Dropdown
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#">Action</a></li>
+                                        <li><a class="dropdown-item" href="#">Another action</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="#">Something else here</a></li>
+                                    </ul>
+                                </li>
                             </ul>
+                            <form class="d-flex mt-3 mt-lg-0" role="search"> <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search"> <button class="btn btn-outline-success" type="submit">Search</button> </form>
                         </div>
                     </div>
                 </div>
             </nav>
-
-        </header>
-        <main>
             <article id="AC000046" data-pbutton="#aim000046" data-parent="" data-formview="" class="">
                 <header class="sticky-top bg-body">
                     <nav class="navbar navbar-expand-lg w-100 px-1 px-lg-2">

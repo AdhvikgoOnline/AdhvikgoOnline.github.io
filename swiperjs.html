@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swiper Web Component Demo</title>
+    <style>
+        .slider-container {
+            max-width: 800px;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            /* This height is crucial for the web component to render */
+            /* If this is not set, the swiper-slider component won't have a height */
+            height: 250px;
+            /* Example height */
+            overflow: hidden;
+            position: relative;
+        }
+
+        #autoplay-slider-container {
+            height: 300px;
+        }
+
+        #vertical-slider-container {
+            height: 400px;
+            width: 300px;
+            /* Vertical sliders often need a defined width too */
+        }
+
+
+        .loading {
+            position: relative;
+        }
+
+        .loading:before {
+            content: 'Loading ...';
+            background-color: #fff;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 10000;
+            text-align: center;
+            opacity: 0.9;
+            min-height: 2rem;
+            cursor: wait;
+        }
+
+
+        /* Styles for the content inside Swiper slides */
+        .swiper-slide p {
+            margin: 0;
+            padding: 20px;
+        }
+
+        .slide1 {
+            background-color: #ffcccc;
+        }
+
+        .slide2 {
+            background-color: #ccffcc;
+        }
+
+        .slide3 {
+            background-color: #ccccff;
+        }
+
+        .slide4 {
+            background-color: #ffffcc;
+        }
+
+        .slide5 {
+            background-color: #ffccff;
+        }
+    </style>
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script> -->
+</head>
+
+<body>
+    <h1>Custom Swiper Slider Web Component</h1>
+    <h2>Slider Option 1: Basic Loop Slider</h2>
+    <div class="slider-container loader">
+        <div class="swiper-slide slide1">
+            <p>Slide 1 - Basic</p>
+        </div>
+        <div class="swiper-slide slide2">
+            <p>Slide 2 - Basic</p>
+        </div>
+        <div class="swiper-slide slide3">
+            <p>Slide 3 - Basic</p>
+        </div>
+        <div class="swiper-slide slide4">
+            <p>Slide 4 - Basic</p>
+        </div>
+        <div class="swiper-slide slide1">
+            <p>Slide 1 - Basic</p>
+        </div>
+        <div class="swiper-slide slide2">
+            <p>Slide 2 - Basic</p>
+        </div>
+        <div class="swiper-slide slide3">
+            <p>Slide 3 - Basic</p>
+        </div>
+        <div class="swiper-slide slide4">
+            <p>Slide 4 - Basic</p>
+        </div>
+        <div class="swiper-slide slide1">
+            <p>Slide 1 - Basic</p>
+        </div>
+        <div class="swiper-slide slide2">
+            <p>Slide 2 - Basic</p>
+        </div>
+        <div class="swiper-slide slide3">
+            <p>Slide 3 - Basic</p>
+        </div>
+        <div class="swiper-slide slide4">
+            <p>Slide 4 - Basic</p>
+        </div>
+    </div>
+
+
+    <h2>Slider Option 2: Autoplay Slider with different speed and slidesPerView</h2>
+    <div class="slider-container loader" id="autoplay-slider-container" data-options='{
+            "autoplay": { "delay": 2500, "disableOnInteraction": false },
+            "slidesPerView": 1,
+            "spaceBetween": 30,
+            "loop": true,
+            "centeredSlides": true
+        }'>
+        <div class="swiper-slide slide5">
+            <p>Slide A - Autoplay</p>
+        </div>
+        <div class="swiper-slide slide1">
+            <p>Slide B - Autoplay</p>
+        </div>
+        <div class="swiper-slide slide2">
+            <p>Slide C - Autoplay</p>
+        </div>
+        <div class="swiper-slide slide3">
+            <p>Slide D - Autoplay</p>
+        </div>
+        <div class="swiper-slide slide4">
+            <p>Slide E - Autoplay</p>
+        </div>
+        <div class="swiper-slide slide5">
+            <p>Slide A - Autoplay</p>
+        </div>
+        <div class="swiper-slide slide1">
+            <p>Slide B - Autoplay</p>
+        </div>
+        <div class="swiper-slide slide2">
+            <p>Slide C - Autoplay</p>
+        </div>
+        <div class="swiper-slide slide3">
+            <p>Slide D - Autoplay</p>
+        </div>
+        <div class="swiper-slide slide4">
+            <p>Slide E - Autoplay</p>
+        </div>
+    </div>
+
+    <h2>Slider Option 3: Another configuration (e.g., vertical)</h2>
+    <div class="slider-container loader" id="vertical-slider-container" data-options='{
+            "direction": "vertical",
+            "slidesPerView": 1,
+            "spaceBetween": 0,
+            "mousewheel": true
+        }'>
+        <div class="swiper-slide slide1">
+            <p>Vertical Slide 1</p>
+        </div>
+        <div class="swiper-slide slide2">
+            <p>Vertical Slide 2</p>
+        </div>
+        <div class="swiper-slide slide3">
+            <p>Vertical Slide 3</p>
+        </div>
+        <div class="swiper-slide slide1">
+            <p>Vertical Slide 1</p>
+        </div>
+        <div class="swiper-slide slide2">
+            <p>Vertical Slide 2</p>
+        </div>
+        <div class="swiper-slide slide3">
+            <p>Vertical Slide 3</p>
+        </div>
+        <div class="swiper-slide slide1">
+            <p>Vertical Slide 1</p>
+        </div>
+        <div class="swiper-slide slide2">
+            <p>Vertical Slide 2</p>
+        </div>
+        <div class="swiper-slide slide3">
+            <p>Vertical Slide 3</p>
+        </div>
+        <div class="swiper-slide slide1">
+            <p>Vertical Slide 1</p>
+        </div>
+        <div class="swiper-slide slide2">
+            <p>Vertical Slide 2</p>
+        </div>
+        <div class="swiper-slide slide3">
+            <p>Vertical Slide 3</p>
+        </div>
+    </div>
+
+    <script src="swiper-slider.js"></script>
+</body>
+
+</html>
